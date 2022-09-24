@@ -9,7 +9,7 @@ use crate::config::Config;
 pub fn config_setup() -> Config {
     let trash_path = create_trash_directory();
 
-    let config_file_path = format!("{}/{}", trash_path, "config.yaml");
+    let config_file_path = format!("{}/{}", trash_path, "config.yml");
     let mut current_config = Config::new_default_config();
     let default_config_str =
         serde_yaml::to_string(&current_config).expect("Unable to deserialize default config file");
