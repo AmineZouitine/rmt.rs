@@ -1,19 +1,21 @@
-struct Trash {
-    id: i8,
-    name: String,
-    hash: String,
-    path: String,
-    date: String,
-    real_size: u8,
-    compression: Option<Compression>,
+#[derive(Debug)]
+pub struct TrashItem {
+    pub id: i8,
+    pub name: String,
+    pub hash: String,
+    pub path: String,
+    pub date: String,
+    pub real_size: u8,
+    pub compression: Option<Compression>,
 }
 
-struct Compression {
+#[derive(Debug)]
+pub struct Compression {
     compression_method: String,
     compression_size: u8,
 }
 
-impl Trash {
+impl TrashItem {
     pub fn new(
         id: i8,
         name: String,
