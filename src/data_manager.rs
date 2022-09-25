@@ -1,9 +1,11 @@
 use crate::trash_item::TrashItem;
 use rusqlite::{params, types::FromSql, Connection, Row};
 
-const DATA_BASE_NAME: &str = "trash_table.db";
-const TEST_DATA_BASE_NAME: &str = "test_trash_table.db";
+const DATA_BASE_NAME: &str = "trash_table";
+const TEST_DATA_BASE_NAME: &str = "test_trash_table";
+
 const ABSOLUTE_PATH_DATABASE: &str = "/home/amine/perso/rmt.rs";
+const FILE_DATA_BASE_NAME: &str = "trash.db";
 
 pub fn get_connection(is_test: bool) -> Connection {
     let data_base_name = if is_test {
@@ -11,24 +13,29 @@ pub fn get_connection(is_test: bool) -> Connection {
     } else {
         DATA_BASE_NAME
     };
-    let connection = Connection::open(data_base_name).expect("Unable to create trash table");
+    let connection = Connection::open(FILE_DATA_BASE_NAME).expect("Unable to create trash table");
 
     connection
         .execute(
-            "create table if not exists trash (
-             id integer primary key,
-             name text not null,
-             hash not null unique,
-             path text not null,
-             date text not null,
-             real_size integer not null,
-             compression_size integer,
-             compression_method text,
-
+            &format!(
+                "CREATE TABLE IF NOT EXISTS {} (
+             id INTEGER PRIMARY KEY,
+             name TEXT NOT NULL,
+             hash NOT NULL UNIQUE,
+             path TEXT NOT NULL,
+             date TEXT NOT NULL,
+             real_size INTEGER NOT NULL,
+             compression_method TEXT,
+             compression_size INTEGER
          )",
-            (),
+                data_base_name
+            ),
+            [],
         )
-        .expect("Unable to execute creation trash table query");
+        .expect(&format!(
+            "Unable to execute creation of {} table",
+            data_base_name
+        ));
 
     connection
 }
@@ -87,9 +94,8 @@ pub fn insert_element(connection: &Connection, trash_item: &TrashItem, is_test: 
 
     connection
         .execute(
-            "INSERT INTO (?1) VALUES (?2, ?3, ?4, ?5, 6?, 7?, 8?)",
+            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_method, compression_size) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", data_base_name),
             params![
-                data_base_name,
                 trash_item.name,
                 trash_item.hash,
                 trash_item.path,
@@ -113,7 +119,7 @@ mod tests {
     use super::*;
 
     fn delete_test_data_base() {
-        let test_data_base_path = format!("{}/{}", ABSOLUTE_PATH_DATABASE, TEST_DATA_BASE_NAME);
+        let test_data_base_path = format!("{}/{}", ABSOLUTE_PATH_DATABASE, FILE_DATA_BASE_NAME);
         if Path::new(&test_data_base_path).is_file() {
             fs::remove_file(&test_data_base_path).expect("Unable to delete test database");
         }
@@ -121,24 +127,84 @@ mod tests {
 
     #[test]
     fn test_insert_without_compression() {
-        // let connection = get_connection(true);
+        let connection = get_connection(true);
 
-        // let trash_item = TrashItem::new(
-        //     1,
-        //     "Amine".to_string(),
-        //     "test".to_string(),
-        //     "home/user".to_string(),
-        //     "00::00::01".to_string(),
-        //     10,
-        //     None,
-        //     None,
-        // );
-        // insert_element(&connection, &trash_item, true);
+        let trash_item = TrashItem::new(
+            1,
+            "Amine".to_string(),
+            "test".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            None,
+            None,
+        );
+        insert_element(&connection, &trash_item, true);
 
-        // let trash_items = find_all_trash_items(&connection, true);
+        let trash_items = find_all_trash_items(&connection, true);
 
-        // assert_eq!(trash_items.len(), 1);
-        // assert_eq!(trash_items[0], trash_item);
         delete_test_data_base();
+        assert_eq!(trash_items.len(), 1);
+        assert_eq!(trash_items[0], trash_item);
+    }
+
+    #[test]
+    fn test_insert_compression() {
+        let connection = get_connection(true);
+
+        let trash_item = TrashItem::new(
+            1,
+            "Amine".to_string(),
+            "Unique".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            Some("zip".to_string()),
+            Some(4),
+        );
+        insert_element(&connection, &trash_item, true);
+
+        let trash_items = find_all_trash_items(&connection, true);
+
+        delete_test_data_base();
+        assert_eq!(trash_items.len(), 1);
+        assert_eq!(trash_items[0], trash_item);
+    }
+
+    #[test]
+    fn test_insert_multiple() {
+        let connection = get_connection(true);
+
+        let trash_item1 = TrashItem::new(
+            1,
+            "Amine".to_string(),
+            "Unique1".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            None,
+            None,
+        );
+
+        let trash_item2 = TrashItem::new(
+            2,
+            "Amine".to_string(),
+            "Unique2".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            Some("zip".to_string()),
+            Some(4),
+        );
+
+        insert_element(&connection, &trash_item1, true);
+        insert_element(&connection, &trash_item2, true);
+
+        let trash_items = find_all_trash_items(&connection, true);
+
+        delete_test_data_base();
+        assert_eq!(trash_items.len(), 2);
+        assert!(trash_items.contains(&trash_item1));
+        assert!(trash_items.contains(&trash_item2));
     }
 }
