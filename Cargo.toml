@@ -9,3 +9,4 @@ edition = "2021"
 home = "0.5.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
