@@ -85,7 +85,7 @@ pub fn draw_data_base(connection: &Connection, is_test: bool) {
     }
 }
 
-pub fn insert_element(connection: &Connection, trash_item: &TrashItem, is_test: bool) {
+pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_test: bool) {
     let data_base_name = if is_test {
         TEST_DATA_BASE_NAME
     } else {
@@ -110,6 +110,28 @@ pub fn insert_element(connection: &Connection, trash_item: &TrashItem, is_test: 
             trash_item
         ));
 }
+
+pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bool) {
+    let data_base_name = if is_test {
+        TEST_DATA_BASE_NAME
+    } else {
+        DATA_BASE_NAME
+    };
+
+    connection
+        .execute(
+            &format!("DELETE FROM {} WHERE id = (?1)", data_base_name),
+            params![trash_item_id],
+        )
+        .expect(&format!(
+            "Unable to do delete element request with this id : {}",
+           trash_item_id 
+        ));
+}
+
+
+
+
 
 #[cfg(test)]
 mod tests {
@@ -139,7 +161,7 @@ mod tests {
             None,
             None,
         );
-        insert_element(&connection, &trash_item, true);
+        insert_trash_item(&connection, &trash_item, true);
 
         let trash_items = find_all_trash_items(&connection, true);
 
@@ -162,7 +184,7 @@ mod tests {
             Some("zip".to_string()),
             Some(4),
         );
-        insert_element(&connection, &trash_item, true);
+        insert_trash_item(&connection, &trash_item, true);
 
         let trash_items = find_all_trash_items(&connection, true);
 
@@ -197,8 +219,8 @@ mod tests {
             Some(4),
         );
 
-        insert_element(&connection, &trash_item1, true);
-        insert_element(&connection, &trash_item2, true);
+        insert_trash_item(&connection, &trash_item1, true);
+        insert_trash_item(&connection, &trash_item2, true);
 
         let trash_items = find_all_trash_items(&connection, true);
 
@@ -207,4 +229,33 @@ mod tests {
         assert!(trash_items.contains(&trash_item1));
         assert!(trash_items.contains(&trash_item2));
     }
+
+    #[test]
+    fn test_delete_trash_item_()
+    {
+        let connection = get_connection(true);
+
+        let trash_item = TrashItem::new(
+            1,
+            "Amine".to_string(),
+            "Unique1".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            None,
+            None,
+        );
+
+        insert_trash_item(&connection, &trash_item, true);
+        let mut trash_items = find_all_trash_items(&connection, true);
+        assert_eq!(trash_items.len(), 1);
+
+
+        delete_trash_item(&connection, trash_items[0].id, true);
+        trash_items = find_all_trash_items(&connection, true);
+        assert_eq!(trash_items.len(), 0);
+
+        delete_test_data_base();
+    }
+
 }
