@@ -1,10 +1,5 @@
 compression:
-    method: zip
-
-flush:
-    warning: true
-    automatic:
-        time: "00:00:00:10"
+    method: zip -r
 
 trash:
     max_size: 10000

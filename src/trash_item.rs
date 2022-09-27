@@ -5,24 +5,23 @@ pub struct TrashItem {
     pub hash: String,
     pub path: String,
     pub date: String,
-    pub real_size: u8,
+    pub real_size: u64,
     pub compression_method: Option<String>,
-    pub compression_size: Option<u8>,
+    pub compression_size: Option<u64>,
 }
 
 impl TrashItem {
     pub fn new(
-        id: i8,
         name: String,
         hash: String,
         path: String,
         date: String,
-        real_size: u8,
+        real_size: u64,
         compression_method: Option<String>,
-        compression_size: Option<u8>,
+        compression_size: Option<u64>,
     ) -> Self {
         Self {
-            id,
+            id: -1,
             name,
             hash,
             path,

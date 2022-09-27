@@ -125,13 +125,9 @@ pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bo
         )
         .expect(&format!(
             "Unable to do delete element request with this id : {}",
-           trash_item_id 
+            trash_item_id
         ));
 }
-
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -152,7 +148,6 @@ mod tests {
         let connection = get_connection(true);
 
         let trash_item = TrashItem::new(
-            1,
             "Amine".to_string(),
             "test".to_string(),
             "home/user".to_string(),
@@ -175,7 +170,6 @@ mod tests {
         let connection = get_connection(true);
 
         let trash_item = TrashItem::new(
-            1,
             "Amine".to_string(),
             "Unique".to_string(),
             "home/user".to_string(),
@@ -198,7 +192,6 @@ mod tests {
         let connection = get_connection(true);
 
         let trash_item1 = TrashItem::new(
-            1,
             "Amine".to_string(),
             "Unique1".to_string(),
             "home/user".to_string(),
@@ -209,7 +202,6 @@ mod tests {
         );
 
         let trash_item2 = TrashItem::new(
-            2,
             "Amine".to_string(),
             "Unique2".to_string(),
             "home/user".to_string(),
@@ -231,12 +223,10 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_trash_item_()
-    {
+    fn test_delete_trash_item_() {
         let connection = get_connection(true);
 
         let trash_item = TrashItem::new(
-            1,
             "Amine".to_string(),
             "Unique1".to_string(),
             "home/user".to_string(),
@@ -250,12 +240,10 @@ mod tests {
         let mut trash_items = find_all_trash_items(&connection, true);
         assert_eq!(trash_items.len(), 1);
 
-
         delete_trash_item(&connection, trash_items[0].id, true);
         trash_items = find_all_trash_items(&connection, true);
         assert_eq!(trash_items.len(), 0);
 
         delete_test_data_base();
     }
-
 }

@@ -1,10 +1,13 @@
 use home;
+use std::fmt::format;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
 use crate::config::Config;
+
+const TRASH_DIRECTORY_NAME: &str = ".trash";
 
 pub fn config_setup() -> Config {
     let trash_path = create_trash_directory();
@@ -31,7 +34,7 @@ pub fn config_setup() -> Config {
 // Create .trash directory if not exist and return it path
 fn create_trash_directory() -> String {
     let home_directory_path = get_home_directory_path();
-    let trash_path = format!("{}/{}", &home_directory_path, ".trash");
+    let trash_path = format!("{}/{}", &home_directory_path, TRASH_DIRECTORY_NAME);
     if !Path::new(&trash_path).is_dir() {
         fs::create_dir(&trash_path).expect("Unable to create tash directory");
     }
@@ -45,6 +48,10 @@ fn get_home_directory_path() -> String {
         .to_str()
         .expect("Unable to convert home dir to str")
         .to_string()
+}
+
+pub fn get_trash_directory_path() -> String {
+    format!("{}/{}", get_home_directory_path(), TRASH_DIRECTORY_NAME)
 }
 
 fn write_default_config_file(config_file_path: &str, default_config_str: &str) {
