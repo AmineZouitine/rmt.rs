@@ -1,4 +1,5 @@
 use std::{path::Path, fs};
+use crate::{config_manager, config::Config};
 
 const TRASH_DIRECTORY_NAME: &str = ".trash_rmt";
 const TEST_TRASH_DIRECTORY_NAME: &str = ".test_trash_rmt";
@@ -7,11 +8,11 @@ const CONFIG: &str = "config_rmt";
 const TEST_CONFIG: &str = "test_config_rmt";
 
 
-// Setup tash directory and config file inside it
-pub fn setup_structure(is_test: bool)
+// Setup tash directory and config file inside it and return the current config
+pub fn setup_structure(is_test: bool) -> Config
 {
     create_trash_directory(is_test);
-    create_config_file(is_test);
+    create_config_file(is_test)
 }
 
 // Create trash directory at the home if not exist
@@ -22,15 +23,20 @@ fn create_trash_directory(is_test: bool){
     }
 }
 
+// Delete trash directory and config file if exists
+pub fn clear_structure(is_test: bool)
+{
+    let trash_path = get_trash_directory_path(is_test);
+    if Path::new(&trash_path).is_dir() {
+        fs::remove_dir(&trash_path);
+    }
+}
 
 // Create config file inside trash_directory if not exist
-fn create_config_file(is_test: bool)
+fn create_config_file(is_test: bool) -> Config
 {
-
     let config_path = get_config_path(is_test);
-    if !Path::new(&config_path).is_file() {
-        fs::File::create(config_path);
-    }
+    config_manager::config_setup(&config_path)
 }
 
 fn get_home_directory_path() -> String {
