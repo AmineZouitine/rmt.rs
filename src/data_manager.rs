@@ -134,89 +134,89 @@ mod tests {
         assert_eq!(trash_items[0], trash_item);
     }
 
-    // #[test]
-    // fn test_insert_compression() {
-    //     let is_test = true;
-    //     let (_, connection) = structure_manager::setup_structure(is_test);
+    #[test]
+    fn test_insert_compression() {
+        let is_test = true;
+        let (_, connection) = structure_manager::setup_structure(is_test);
 
-    //     let mut trash_item = TrashItem::new(
-    //         "Amine".to_string(),
-    //         "Unique".to_string(),
-    //         "home/user".to_string(),
-    //         "00::00::01".to_string(),
-    //         10,
-    //         Some(4),
-    //     );
-    //     insert_trash_item(&connection, &trash_item, is_test);
+        let mut trash_item = TrashItem::new(
+            "Amine".to_string(),
+            "Unique".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            Some(4),
+        );
+        insert_trash_item(&connection, &trash_item, is_test);
 
-    //     let trash_items = find_all_trash_items(&connection, is_test);
+        let trash_items = find_all_trash_items(&connection, is_test);
 
-    //     structure_manager::clear_structure(is_test);
-    //     assert_eq!(trash_items.len(), 1);
-    //     trash_item.id = trash_items[0].id;
-    //     assert_eq!(trash_items[0], trash_item);
-    // }
+        structure_manager::clear_structure(is_test);
+        assert_eq!(trash_items.len(), 1);
+        trash_item.id = trash_items[0].id;
+        assert_eq!(trash_items[0], trash_item);
+    }
 
-    // #[test]
-    // fn test_insert_multiple() {
-    //     let is_test = true;
-    //     let (_, connection) = structure_manager::setup_structure(is_test);
+    #[test]
+    fn test_insert_multiple() {
+        let is_test = true;
+        let (_, connection) = structure_manager::setup_structure(is_test);
 
-    //     let mut trash_item1 = TrashItem::new(
-    //         "Amine".to_string(),
-    //         "Unique1".to_string(),
-    //         "home/user".to_string(),
-    //         "00::00::01".to_string(),
-    //         10,
-    //         None,
-    //     );
+        let mut trash_item1 = TrashItem::new(
+            "Amine".to_string(),
+            "Unique1".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            None,
+        );
 
-    //     let mut trash_item2 = TrashItem::new(
-    //         "Amine".to_string(),
-    //         "Unique2".to_string(),
-    //         "home/user".to_string(),
-    //         "00::00::01".to_string(),
-    //         10,
-    //         Some(4),
-    //     );
+        let mut trash_item2 = TrashItem::new(
+            "Amine".to_string(),
+            "Unique2".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            Some(4),
+        );
 
-    //     insert_trash_item(&connection, &trash_item1, is_test);
-    //     insert_trash_item(&connection, &trash_item2, is_test);
+        insert_trash_item(&connection, &trash_item1, is_test);
+        insert_trash_item(&connection, &trash_item2, is_test);
 
-    //     let trash_items = find_all_trash_items(&connection, is_test);
+        let trash_items = find_all_trash_items(&connection, is_test);
 
-    //     structure_manager::clear_structure(is_test);
-    //     assert_eq!(trash_items.len(), 2);
+        structure_manager::clear_structure(is_test);
+        assert_eq!(trash_items.len(), 2);
 
-    //     trash_item1.id = trash_items[0].id;
-    //     trash_item2.id = trash_items[1].id;
+        trash_item1.id = trash_items[0].id;
+        trash_item2.id = trash_items[1].id;
 
-    //     assert!(trash_items.contains(&trash_item1));
-    //     assert!(trash_items.contains(&trash_item2));
-    // }
+        assert!(trash_items.contains(&trash_item1));
+        assert!(trash_items.contains(&trash_item2));
+    }
 
-    // #[test]
-    // fn test_delete_trash_item_() {
-    //     let is_test = true;
-    //     let (_, connection) = structure_manager::setup_structure(is_test);
+    #[test]
+    fn test_delete_trash_item_() {
+        let is_test = true;
+        let (_, connection) = structure_manager::setup_structure(is_test);
 
-    //     let trash_item = TrashItem::new(
-    //         "Amine".to_string(),
-    //         "Unique1".to_string(),
-    //         "home/user".to_string(),
-    //         "00::00::01".to_string(),
-    //         10,
-    //         None,
-    //     );
+        let trash_item = TrashItem::new(
+            "Amine".to_string(),
+            "Unique1".to_string(),
+            "home/user".to_string(),
+            "00::00::01".to_string(),
+            10,
+            None,
+        );
 
-    //     insert_trash_item(&connection, &trash_item, is_test);
-    //     let mut trash_items = find_all_trash_items(&connection, is_test);
-    //     assert_eq!(trash_items.len(), 1);
+        insert_trash_item(&connection, &trash_item, is_test);
+        let mut trash_items = find_all_trash_items(&connection, is_test);
+        assert_eq!(trash_items.len(), 1);
 
-    //     delete_trash_item(&connection, trash_items[0].id, is_test);
-    //     trash_items = find_all_trash_items(&connection, is_test);
-    //     assert_eq!(trash_items.len(), 0);
+        delete_trash_item(&connection, trash_items[0].id, is_test);
+        trash_items = find_all_trash_items(&connection, is_test);
+        assert_eq!(trash_items.len(), 0);
 
-    //     structure_manager::clear_structure(is_test);
-    // }
+        structure_manager::clear_structure(is_test);
+    }
 }

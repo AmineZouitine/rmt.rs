@@ -31,7 +31,6 @@ pub fn setup_structure(is_test: bool) -> (Config, Connection) {
 // Create trash directory at the home if not exist
 fn create_trash_directory(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
-    println!("PATH = {}", trash_path);
     if !Path::new(&trash_path).is_dir() {
         fs::create_dir(&trash_path).expect("Unable to create tash directory");
     }
@@ -41,12 +40,12 @@ fn create_trash_directory(is_test: bool) {
 pub fn clear_structure(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
     if Path::new(&trash_path).is_dir() {
-        fs::remove_dir(&trash_path).expect(&format!("Unable to delete {}", trash_path));
+        fs::remove_dir_all(&trash_path).expect(&format!("Unable to delete {}", trash_path));
     }
 
     let data_base_path = get_data_base_path(is_test);
     if Path::new(&data_base_path).is_dir() {
-        fs::remove_dir(&data_base_path).expect(&format!("Unable to delete {}", data_base_path));
+        fs::remove_dir_all(&data_base_path).expect(&format!("Unable to delete {}", data_base_path));
     }
 }
 
@@ -118,23 +117,23 @@ pub fn get_data_base_path(is_test: bool) -> String {
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn test_create_trash_directory()
-    // {
-    //     let is_test = false;
-    //     create_trash_directory(is_test);
-    //     let path = get_trash_directory_path(is_test);
-    //     assert!(fs::metadata(path).unwrap().is_dir());
-    //     clear_structure(is_test);
-    // }
+    #[test]
+    fn test_create_trash_directory()
+    {
+        let is_test = false;
+        create_trash_directory(is_test);
+        let path = get_trash_directory_path(is_test);
+        assert!(fs::metadata(path).unwrap().is_dir());
+        clear_structure(is_test);
+    }
 
-    //  #[test]
-    // fn test_create_trash_directory_test()
-    // {
-    //     let is_test = true;
-    //     create_trash_directory(is_test);
-    //     let path = get_trash_directory_path(is_test);
-    //     assert!(fs::metadata(path).unwrap().is_dir());
-    //     clear_structure(is_test);
-    // }
+     #[test]
+    fn test_create_trash_directory_test()
+    {
+        let is_test = true;
+        create_trash_directory(is_test);
+        let path = get_trash_directory_path(is_test);
+        assert!(fs::metadata(path).unwrap().is_dir());
+        clear_structure(is_test);
+    }
 }
