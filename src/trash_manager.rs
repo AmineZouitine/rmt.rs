@@ -3,7 +3,7 @@ use crate::{config::Config, config_manager, structure_manager, trash_item::Trash
 use chrono;
 use fs_extra::dir::get_size;
 use sha256;
-use std::{fs, path, process::Command};
+use std::process::Command;
 
 fn get_element_path(element_name: &str) -> String {
     let current_directory_path = std::env::current_dir().unwrap();
@@ -89,7 +89,6 @@ pub fn convert_element_to_trash_item(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     // #[test]
     // fn test_convert_element_to_trash_item() {}
