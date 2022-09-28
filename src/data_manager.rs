@@ -1,12 +1,11 @@
-use crate::{trash_item::TrashItem};
-use rusqlite::{params, types::FromSql, Connection, Row};
 use crate::structure_manager;
+use crate::trash_item::TrashItem;
+use rusqlite::{params, types::FromSql, Connection, Row};
 
 pub fn setup_data_base(is_test: bool) -> Connection {
-
     let connection = structure_manager::create_data_base_file(is_test);
     let table_name = structure_manager::get_data_base_table_name(is_test);
-    
+
     connection
         .execute(
             &format!(
@@ -19,13 +18,13 @@ pub fn setup_data_base(is_test: bool) -> Connection {
              real_size INTEGER NOT NULL,
              compression_size INTEGER
          )",
-               table_name 
+                table_name
             ),
             [],
         )
         .expect(&format!(
             "Unable to execute creation of {} table",
-           table_name 
+            table_name
         ));
 
     connection
@@ -63,7 +62,6 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
 
     trash_items
 }
-
 
 pub fn draw_data_base(connection: &Connection, is_test: bool) {
     let trash_items = find_all_trash_items(connection, is_test);
@@ -111,7 +109,7 @@ pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bo
 mod tests {
 
     use super::*;
-    
+
     #[test]
     fn test_insert_without_compression() {
         let is_test = true;

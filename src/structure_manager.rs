@@ -11,7 +11,6 @@ const TEST_TRASH_DIRECTORY_NAME: &str = ".test_trash_rmt";
 const CONFIG: &str = "config_rmt";
 const TEST_CONFIG: &str = "test_config_rmt";
 
-
 //DATABASE FILE CONSTANTE
 const DATA_BASE_FILE_NAME: &str = "trash.db";
 const TEST_DATA_BASE_FILE_NAME: &str = "test_trash.db";
@@ -20,11 +19,13 @@ const TEST_DATA_BASE_FILE_NAME: &str = "test_trash.db";
 const DATA_BASE_TABLE_NAME: &str = "trash_table";
 const TEST_DATA_BASE_TABLE_NAME: &str = "test_trash_table";
 
-
 // Setup tash directory and config file inside it and return the current config
 pub fn setup_structure(is_test: bool) -> (Config, Connection) {
     create_trash_directory(is_test);
-    (create_config_file(is_test), data_manager::setup_data_base(is_test))
+    (
+        create_config_file(is_test),
+        data_manager::setup_data_base(is_test),
+    )
 }
 
 // Create trash directory at the home if not exist
@@ -64,24 +65,25 @@ fn get_home_directory_path() -> String {
 }
 
 pub fn get_trash_directory_path(is_test: bool) -> String {
-    format!("{}/{}", get_home_directory_path(), get_trash_directory_name(is_test))
+    format!(
+        "{}/{}",
+        get_home_directory_path(),
+        get_trash_directory_name(is_test)
+    )
 }
-
 
 pub fn get_config_path(is_test: bool) -> String {
     let config_name = if is_test { TEST_CONFIG } else { CONFIG };
     format!("{}/{}", get_trash_directory_path(is_test), config_name)
 }
 
-fn get_trash_directory_name(is_test: bool) -> String
-{
+fn get_trash_directory_name(is_test: bool) -> String {
     if is_test {
         TEST_TRASH_DIRECTORY_NAME.to_string()
     } else {
         TRASH_DIRECTORY_NAME.to_string()
     }
 }
-
 
 pub fn get_data_base_table_name(is_test: bool) -> String {
     if is_test {
@@ -99,19 +101,18 @@ fn get_data_base_file_name(is_test: bool) -> String {
     }
 }
 
-
-pub fn create_data_base_file(is_test: bool) -> Connection
-{
+pub fn create_data_base_file(is_test: bool) -> Connection {
     let data_base_path = get_data_base_path(is_test);
     Connection::open(&data_base_path).expect(&format!("Unable to create {} file", &data_base_path))
 }
 
-
-pub fn get_data_base_path(is_test: bool) -> String
-{
-    format!("{}/{}", get_trash_directory_path(is_test), get_data_base_file_name(is_test))
+pub fn get_data_base_path(is_test: bool) -> String {
+    format!(
+        "{}/{}",
+        get_trash_directory_path(is_test),
+        get_data_base_file_name(is_test)
+    )
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -136,5 +137,4 @@ mod tests {
     //     assert!(fs::metadata(path).unwrap().is_dir());
     //     clear_structure(is_test);
     // }
-
 }
