@@ -6,7 +6,6 @@ pub struct TrashItem {
     pub path: String,
     pub date: String,
     pub real_size: u64,
-    pub compression_method: Option<String>,
     pub compression_size: Option<u64>,
 }
 
@@ -17,7 +16,6 @@ impl TrashItem {
         path: String,
         date: String,
         real_size: u64,
-        compression_method: Option<String>,
         compression_size: Option<u64>,
     ) -> Self {
         Self {
@@ -27,7 +25,6 @@ impl TrashItem {
             path,
             date,
             real_size,
-            compression_method,
             compression_size,
         }
     }

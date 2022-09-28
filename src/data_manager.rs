@@ -25,7 +25,6 @@ pub fn get_connection(is_test: bool) -> Connection {
              path TEXT NOT NULL,
              date TEXT NOT NULL,
              real_size INTEGER NOT NULL,
-             compression_method TEXT,
              compression_size INTEGER
          )",
                 data_base_name
@@ -66,8 +65,7 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
             path: get(row, 3),
             date: get(row, 4),
             real_size: get(row, 5),
-            compression_method: get(row, 6),
-            compression_size: get(row, 7),
+            compression_size: get(row, 6),
         })
     });
 
@@ -94,14 +92,13 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
 
     connection
         .execute(
-            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_method, compression_size) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", data_base_name),
+            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size) VALUES (?1, ?2, ?3, ?4, ?5, ?6)", data_base_name),
             params![
                 trash_item.name,
                 trash_item.hash,
                 trash_item.path,
                 trash_item.date,
                 trash_item.real_size,
-                trash_item.compression_method,
                 trash_item.compression_size,
             ],
         )
@@ -147,13 +144,12 @@ mod tests {
     fn test_insert_without_compression() {
         let connection = get_connection(true);
 
-        let trash_item = TrashItem::new(
+        let mut trash_item = TrashItem::new(
             "Amine".to_string(),
             "test".to_string(),
             "home/user".to_string(),
             "00::00::01".to_string(),
             10,
-            None,
             None,
         );
         insert_trash_item(&connection, &trash_item, true);
@@ -162,6 +158,7 @@ mod tests {
 
         delete_test_data_base();
         assert_eq!(trash_items.len(), 1);
+        trash_item.id = trash_items[0].id;
         assert_eq!(trash_items[0], trash_item);
     }
 
@@ -169,13 +166,12 @@ mod tests {
     fn test_insert_compression() {
         let connection = get_connection(true);
 
-        let trash_item = TrashItem::new(
+    let mut trash_item = TrashItem::new(
             "Amine".to_string(),
             "Unique".to_string(),
             "home/user".to_string(),
             "00::00::01".to_string(),
             10,
-            Some("zip".to_string()),
             Some(4),
         );
         insert_trash_item(&connection, &trash_item, true);
@@ -184,6 +180,7 @@ mod tests {
 
         delete_test_data_base();
         assert_eq!(trash_items.len(), 1);
+        trash_item.id = trash_items[0].id;
         assert_eq!(trash_items[0], trash_item);
     }
 
@@ -191,23 +188,21 @@ mod tests {
     fn test_insert_multiple() {
         let connection = get_connection(true);
 
-        let trash_item1 = TrashItem::new(
+        let mut trash_item1 = TrashItem::new(
             "Amine".to_string(),
             "Unique1".to_string(),
             "home/user".to_string(),
             "00::00::01".to_string(),
             10,
             None,
-            None,
         );
 
-        let trash_item2 = TrashItem::new(
+        let mut trash_item2 = TrashItem::new(
             "Amine".to_string(),
             "Unique2".to_string(),
             "home/user".to_string(),
             "00::00::01".to_string(),
             10,
-            Some("zip".to_string()),
             Some(4),
         );
 
@@ -218,6 +213,10 @@ mod tests {
 
         delete_test_data_base();
         assert_eq!(trash_items.len(), 2);
+
+        trash_item1.id = trash_items[0].id;
+        trash_item2.id = trash_items[1].id;
+
         assert!(trash_items.contains(&trash_item1));
         assert!(trash_items.contains(&trash_item2));
     }
@@ -232,7 +231,6 @@ mod tests {
             "home/user".to_string(),
             "00::00::01".to_string(),
             10,
-            None,
             None,
         );
 

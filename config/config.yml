@@ -1,5 +1,4 @@
-compression:
-    method: zip -r
+compression: true
 
 trash:
     max_size: 10000

@@ -2,18 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Config {
-    pub compression: Option<Compression>,
+    pub compression: bool,
     pub trash: Option<Trash>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Compression {
-    pub method: String,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Automatique {
-    pub time: String,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -25,7 +15,7 @@ pub struct Trash {
 impl Config {
     pub fn new_default_config() -> Self {
         Self {
-            compression: None,
+            compression: false,
             trash: None,
         }
     }
