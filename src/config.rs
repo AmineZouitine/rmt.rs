@@ -18,7 +18,6 @@ pub struct Trash {
 }
 
 impl Config {
-
     // The initial configuration does not compress the file and has no restrictions on the trash
     pub fn new_default_config() -> Self {
         Self {

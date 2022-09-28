@@ -1,12 +1,12 @@
 pub mod config;
 pub mod config_manager;
 pub mod data_manager;
+pub mod structure_manager;
 pub mod trash_item;
 pub mod trash_manager;
-pub mod structure_manager;
 
 fn main() {
-    let current_config = structure_manager::setup_structure(true);
-    trash_manager::convert_element_to_trash_item(&current_config, "");
+    let (config, connection) = structure_manager::setup_structure(true);
+    trash_manager::convert_element_to_trash_item(&config, "", true);
     // trash_manager::convert_element_to_trash_item("test.txt");
 }

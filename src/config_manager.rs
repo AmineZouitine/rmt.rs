@@ -6,7 +6,6 @@ use std::path::Path;
 
 use crate::config::Config;
 
-
 // Create config file with default config if not exist and return it, or read current config file and the config
 pub fn config_setup(config_path: &str) -> Config {
     let mut current_config = Config::new_default_config();
@@ -18,9 +17,8 @@ pub fn config_setup(config_path: &str) -> Config {
         write_default_config_file(&config_path, &default_config_content);
     } else {
         // get the current content of the config file
-        let config_content =
-            fs::read_to_string(&config_path).expect("Unable to read config file");
-    
+        let config_content = fs::read_to_string(&config_path).expect("Unable to read config file");
+
         // try to convert it to Config structure
         current_config = serde_yaml::from_str(&config_content).unwrap_or_else(|_| {
             // if the current config file, is not correct (bad format, bad values etc...), replace the content by the default config
@@ -31,7 +29,6 @@ pub fn config_setup(config_path: &str) -> Config {
 
     current_config
 }
-
 
 fn write_default_config_file(config_file_path: &str, default_config_str: &str) {
     File::create(config_file_path)

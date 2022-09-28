@@ -1,40 +1,55 @@
-use std::{path::Path, fs};
-use crate::{config_manager, config::Config};
+use rusqlite::Connection;
 
+use crate::{config::Config, config_manager};
+use std::{fs, path::Path};
+
+// TRASH DIRECTORY CONSTANT
 const TRASH_DIRECTORY_NAME: &str = ".trash_rmt";
 const TEST_TRASH_DIRECTORY_NAME: &str = ".test_trash_rmt";
 
+// CONFIG CONSTANTE
 const CONFIG: &str = "config_rmt";
 const TEST_CONFIG: &str = "test_config_rmt";
 
 
+//DATABASE FILE CONSTANTE
+const DATA_BASE_FILE_NAME: &str = "trash.db";
+const TEST_DATA_BASE_FILE_NAME: &str = "test_trash.db";
+
+//DATABASE TABLE CONSTANTE
+const DATA_BASE_TABLE_NAME: &str = "trash_table";
+const TEST_DATA_BASE_TABLE_NAME: &str = "test_trash_table";
+
+
 // Setup tash directory and config file inside it and return the current config
-pub fn setup_structure(is_test: bool) -> Config
-{
+pub fn setup_structure(is_test: bool) -> (Config, Connection) {
     create_trash_directory(is_test);
-    create_config_file(is_test)
+    (create_config_file(is_test), create_data_base_file(is_test))
 }
 
 // Create trash directory at the home if not exist
-fn create_trash_directory(is_test: bool){
+fn create_trash_directory(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
     if !Path::new(&trash_path).is_dir() {
         fs::create_dir(&trash_path).expect("Unable to create tash directory");
     }
 }
 
-// Delete trash directory and config file if exists
-pub fn clear_structure(is_test: bool)
-{
+// Delete trash directory, config file and database file if exists
+pub fn clear_structure(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
     if Path::new(&trash_path).is_dir() {
-        fs::remove_dir(&trash_path);
+        fs::remove_dir(&trash_path).expect(&format!("Unable to delete {}", trash_path));
+    }
+
+    let data_base_path = get_data_base_path(is_test);
+    if Path::new(&data_base_path).is_dir() {
+        fs::remove_dir(&data_base_path).expect(&format!("Unable to delete {}", data_base_path));
     }
 }
 
 // Create config file inside trash_directory if not exist
-fn create_config_file(is_test: bool) -> Config
-{
+fn create_config_file(is_test: bool) -> Config {
     let config_path = get_config_path(is_test);
     config_manager::config_setup(&config_path)
 }
@@ -47,14 +62,46 @@ fn get_home_directory_path() -> String {
         .to_string()
 }
 
-
 pub fn get_trash_directory_path(is_test: bool) -> String {
-    let trash_directory_name = if is_test {TEST_TRASH_DIRECTORY_NAME} else {TRASH_DIRECTORY_NAME};
+    let trash_directory_name = if is_test {
+        TEST_TRASH_DIRECTORY_NAME
+    } else {
+        TRASH_DIRECTORY_NAME
+    };
     format!("{}/{}", get_home_directory_path(), trash_directory_name)
 }
 
-
 pub fn get_config_path(is_test: bool) -> String {
-    let config_name = if is_test {TEST_CONFIG} else {CONFIG};
+    let config_name = if is_test { TEST_CONFIG } else { CONFIG };
     format!("{}/{}", get_trash_directory_path(is_test), config_name)
+}
+
+
+pub fn get_data_base_table_name(is_test: bool) -> String {
+    if is_test {
+        TEST_DATA_BASE_TABLE_NAME.to_string()
+    } else {
+        DATA_BASE_TABLE_NAME.to_string()
+    }
+}
+
+fn get_data_base_file_name(is_test: bool) -> String {
+    if is_test {
+        TEST_DATA_BASE_FILE_NAME.to_string()
+    } else {
+        DATA_BASE_FILE_NAME.to_string()
+    }
+}
+
+
+pub fn create_data_base_file(is_test: bool) -> Connection
+{
+    let data_base_path = get_data_base_file_name(is_test);
+    Connection::open(&data_base_path).expect(&format!("Unable to create {} file", &data_base_path))
+}
+
+
+pub fn get_data_base_path(is_test: bool) -> String
+{
+    format!("{}/{}", get_trash_directory_path(is_test), get_data_base_file_name(is_test))
 }

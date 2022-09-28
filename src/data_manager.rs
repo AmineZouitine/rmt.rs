@@ -1,20 +1,10 @@
-use crate::trash_item::TrashItem;
+use crate::{trash_item::TrashItem};
 use rusqlite::{params, types::FromSql, Connection, Row};
+use crate::structure_manager;
 
-const DATA_BASE_NAME: &str = "trash_table";
-const TEST_DATA_BASE_NAME: &str = "test_trash_table";
-
-const ABSOLUTE_PATH_DATABASE: &str = "/home/amine/perso/rmt.rs";
-const FILE_DATA_BASE_NAME: &str = "trash.db";
-
-pub fn get_connection(is_test: bool) -> Connection {
-    let data_base_name = if is_test {
-        TEST_DATA_BASE_NAME
-    } else {
-        DATA_BASE_NAME
-    };
-    let connection = Connection::open(FILE_DATA_BASE_NAME).expect("Unable to create trash table");
-
+pub fn create_trash_table(connection: &Connection, is_test: bool) -> &Connection {
+    let table_name = structure_manager::get_data_base_table_name(is_test);
+    
     connection
         .execute(
             &format!(
@@ -27,13 +17,13 @@ pub fn get_connection(is_test: bool) -> Connection {
              real_size INTEGER NOT NULL,
              compression_size INTEGER
          )",
-                data_base_name
+               table_name 
             ),
             [],
         )
         .expect(&format!(
             "Unable to execute creation of {} table",
-            data_base_name
+           table_name 
         ));
 
     connection
@@ -45,14 +35,10 @@ fn get<T: FromSql>(row: &Row, index: usize) -> T {
 }
 
 pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<TrashItem> {
-    let data_base_name = if is_test {
-        TEST_DATA_BASE_NAME
-    } else {
-        DATA_BASE_NAME
-    };
+    let table_name = structure_manager::get_data_base_table_name(is_test);
 
     let mut stmt = connection
-        .prepare(&format!("SELECT * FROM {}", data_base_name))
+        .prepare(&format!("SELECT * FROM {}", table_name))
         .expect("Cannot select every element in database");
 
     let mut trash_items = Vec::<TrashItem>::new();
@@ -76,6 +62,7 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
     trash_items
 }
 
+
 pub fn draw_data_base(connection: &Connection, is_test: bool) {
     let trash_items = find_all_trash_items(connection, is_test);
     for (i, item) in trash_items.iter().enumerate() {
@@ -84,15 +71,11 @@ pub fn draw_data_base(connection: &Connection, is_test: bool) {
 }
 
 pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_test: bool) {
-    let data_base_name = if is_test {
-        TEST_DATA_BASE_NAME
-    } else {
-        DATA_BASE_NAME
-    };
+    let table_name = structure_manager::get_data_base_table_name(is_test);
 
     connection
         .execute(
-            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size) VALUES (?1, ?2, ?3, ?4, ?5, ?6)", data_base_name),
+            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size) VALUES (?1, ?2, ?3, ?4, ?5, ?6)", table_name),
             params![
                 trash_item.name,
                 trash_item.hash,
@@ -109,15 +92,11 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
 }
 
 pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bool) {
-    let data_base_name = if is_test {
-        TEST_DATA_BASE_NAME
-    } else {
-        DATA_BASE_NAME
-    };
+    let table_name = structure_manager::get_data_base_table_name(is_test);
 
     connection
         .execute(
-            &format!("DELETE FROM {} WHERE id = (?1)", data_base_name),
+            &format!("DELETE FROM {} WHERE id = (?1)", table_name),
             params![trash_item_id],
         )
         .expect(&format!(
@@ -131,18 +110,13 @@ mod tests {
 
     use std::{fs, path::Path};
 
+    use crate::config;
+
     use super::*;
-
-    fn delete_test_data_base() {
-        let test_data_base_path = format!("{}/{}", ABSOLUTE_PATH_DATABASE, FILE_DATA_BASE_NAME);
-        if Path::new(&test_data_base_path).is_file() {
-            fs::remove_file(&test_data_base_path).expect("Unable to delete test database");
-        }
-    }
-
+    
     #[test]
     fn test_insert_without_compression() {
-        let connection = get_connection(true);
+        let (_, connection) = structure_manager::setup_structure(true);
 
         let mut trash_item = TrashItem::new(
             "Amine".to_string(),
@@ -156,7 +130,7 @@ mod tests {
 
         let trash_items = find_all_trash_items(&connection, true);
 
-        delete_test_data_base();
+        structure_manager::clear_structure(true);
         assert_eq!(trash_items.len(), 1);
         trash_item.id = trash_items[0].id;
         assert_eq!(trash_items[0], trash_item);
@@ -164,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_insert_compression() {
-        let connection = get_connection(true);
+        let (_, connection) = structure_manager::setup_structure(true);
 
         let mut trash_item = TrashItem::new(
             "Amine".to_string(),
@@ -178,7 +152,7 @@ mod tests {
 
         let trash_items = find_all_trash_items(&connection, true);
 
-        delete_test_data_base();
+        structure_manager::clear_structure(true);
         assert_eq!(trash_items.len(), 1);
         trash_item.id = trash_items[0].id;
         assert_eq!(trash_items[0], trash_item);
@@ -186,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_insert_multiple() {
-        let connection = get_connection(true);
+        let (_, connection) = structure_manager::setup_structure(true);
 
         let mut trash_item1 = TrashItem::new(
             "Amine".to_string(),
@@ -211,7 +185,7 @@ mod tests {
 
         let trash_items = find_all_trash_items(&connection, true);
 
-        delete_test_data_base();
+        structure_manager::clear_structure(true);
         assert_eq!(trash_items.len(), 2);
 
         trash_item1.id = trash_items[0].id;
@@ -223,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_delete_trash_item_() {
-        let connection = get_connection(true);
+        let (_, connection) = structure_manager::setup_structure(true);
 
         let trash_item = TrashItem::new(
             "Amine".to_string(),
@@ -242,6 +216,6 @@ mod tests {
         trash_items = find_all_trash_items(&connection, true);
         assert_eq!(trash_items.len(), 0);
 
-        delete_test_data_base();
+        structure_manager::clear_structure(true);
     }
 }

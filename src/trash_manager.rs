@@ -1,4 +1,4 @@
-use crate::{config::Config, config_manager, trash_item::TrashItem};
+use crate::{config::Config, config_manager, trash_item::TrashItem, structure_manager};
 
 use chrono;
 use fs_extra::dir::get_size;
@@ -46,7 +46,7 @@ fn make_zip(element_src_path: &str, element_dst_path: &str, zip_name: &str) -> u
     ))
 }
 
-pub fn convert_element_to_trash_item(config: &Config, element_name: &str) -> TrashItem {
+pub fn convert_element_to_trash_item(config: &Config, element_name: &str, is_test: bool) -> TrashItem {
     let element_path = get_element_path(element_name);
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
@@ -60,7 +60,7 @@ pub fn convert_element_to_trash_item(config: &Config, element_name: &str) -> Tra
 
     let date = chrono::offset::Local::now().format("%Y-%m-%d %H:%M:%S");
 
-    let destination_path = config_manager::get_trash_directory_path();
+    let destination_path = structure_manager::get_trash_directory_path(is_test);
 
     let mut compression_size: Option<u64> = None;
 
