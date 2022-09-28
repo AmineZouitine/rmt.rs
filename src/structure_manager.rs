@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use crate::{config::Config, config_manager};
+use crate::{config::Config, config_manager, data_manager};
 use std::{fs, path::Path};
 
 // TRASH DIRECTORY CONSTANT
@@ -24,12 +24,13 @@ const TEST_DATA_BASE_TABLE_NAME: &str = "test_trash_table";
 // Setup tash directory and config file inside it and return the current config
 pub fn setup_structure(is_test: bool) -> (Config, Connection) {
     create_trash_directory(is_test);
-    (create_config_file(is_test), create_data_base_file(is_test))
+    (create_config_file(is_test), data_manager::setup_data_base(is_test))
 }
 
 // Create trash directory at the home if not exist
 fn create_trash_directory(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
+    println!("PATH = {}", trash_path);
     if !Path::new(&trash_path).is_dir() {
         fs::create_dir(&trash_path).expect("Unable to create tash directory");
     }
@@ -63,17 +64,22 @@ fn get_home_directory_path() -> String {
 }
 
 pub fn get_trash_directory_path(is_test: bool) -> String {
-    let trash_directory_name = if is_test {
-        TEST_TRASH_DIRECTORY_NAME
-    } else {
-        TRASH_DIRECTORY_NAME
-    };
-    format!("{}/{}", get_home_directory_path(), trash_directory_name)
+    format!("{}/{}", get_home_directory_path(), get_trash_directory_name(is_test))
 }
+
 
 pub fn get_config_path(is_test: bool) -> String {
     let config_name = if is_test { TEST_CONFIG } else { CONFIG };
     format!("{}/{}", get_trash_directory_path(is_test), config_name)
+}
+
+fn get_trash_directory_name(is_test: bool) -> String
+{
+    if is_test {
+        TEST_TRASH_DIRECTORY_NAME.to_string()
+    } else {
+        TRASH_DIRECTORY_NAME.to_string()
+    }
 }
 
 
@@ -96,7 +102,7 @@ fn get_data_base_file_name(is_test: bool) -> String {
 
 pub fn create_data_base_file(is_test: bool) -> Connection
 {
-    let data_base_path = get_data_base_file_name(is_test);
+    let data_base_path = get_data_base_path(is_test);
     Connection::open(&data_base_path).expect(&format!("Unable to create {} file", &data_base_path))
 }
 
@@ -104,4 +110,31 @@ pub fn create_data_base_file(is_test: bool) -> Connection
 pub fn get_data_base_path(is_test: bool) -> String
 {
     format!("{}/{}", get_trash_directory_path(is_test), get_data_base_file_name(is_test))
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // #[test]
+    // fn test_create_trash_directory()
+    // {
+    //     let is_test = false;
+    //     create_trash_directory(is_test);
+    //     let path = get_trash_directory_path(is_test);
+    //     assert!(fs::metadata(path).unwrap().is_dir());
+    //     clear_structure(is_test);
+    // }
+
+    //  #[test]
+    // fn test_create_trash_directory_test()
+    // {
+    //     let is_test = true;
+    //     create_trash_directory(is_test);
+    //     let path = get_trash_directory_path(is_test);
+    //     assert!(fs::metadata(path).unwrap().is_dir());
+    //     clear_structure(is_test);
+    // }
+
 }

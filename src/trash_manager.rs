@@ -87,6 +87,6 @@ pub fn convert_element_to_trash_item(config: &Config, element_name: &str, is_tes
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_convert_element_to_trash_item() {}
+    // #[test]
+    // fn test_convert_element_to_trash_item() {}
 }
