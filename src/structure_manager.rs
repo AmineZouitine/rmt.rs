@@ -136,4 +136,21 @@ mod tests {
         assert!(fs::metadata(path).unwrap().is_dir());
         clear_structure(is_test);
     }
+
+
+     #[test]
+    fn test_setup()
+    {
+        let is_test = false;
+        setup_structure(is_test);
+        let path_trash_folder= get_trash_directory_path(is_test);
+        let path_config= get_config_path(is_test);
+        let path_data_base = get_data_base_path(is_test);
+
+        assert!(fs::metadata(&path_trash_folder).unwrap().is_dir());
+        assert!(fs::metadata(&path_config).unwrap().is_file());
+        assert!(fs::metadata(&path_data_base).unwrap().is_file());
+        clear_structure(is_test);
+
+    }
 }
