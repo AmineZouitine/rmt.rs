@@ -166,7 +166,7 @@ mod tests {
     fn test_insert_compression() {
         let connection = get_connection(true);
 
-    let mut trash_item = TrashItem::new(
+        let mut trash_item = TrashItem::new(
             "Amine".to_string(),
             "Unique".to_string(),
             "home/user".to_string(),
