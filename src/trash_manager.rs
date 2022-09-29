@@ -1,15 +1,19 @@
-use crate::{config::Config, config_manager, structure_manager, trash_item::TrashItem};
+use crate::{
+    config::Config,
+    structure_manager::{self, get_trash_directory_path},
+    trash_item::TrashItem,
+};
 
 use chrono;
 use fs_extra::dir::get_size;
 use sha256;
-use std::process::Command;
+use std::{ffi::OsStr, path::Path, process::Command};
 
-fn get_element_path(element_name: &str) -> String {
-    let current_directory_path = std::env::current_dir().unwrap();
-    let current_directory_str = current_directory_path.to_str().unwrap();
-    let selected_element_path = format!("{}/{}", &current_directory_str, element_name);
-    selected_element_path
+pub fn abspath(p: &str) -> Option<String> {
+    shellexpand::full(p)
+        .ok()
+        .and_then(|x| Path::new(OsStr::new(x.as_ref())).canonicalize().ok())
+        .and_then(|p| p.into_os_string().into_string().ok())
 }
 
 fn make_zip(element_src_path: &str, element_dst_path: &str, zip_name: &str) -> u64 {
@@ -30,14 +34,28 @@ fn make_zip(element_src_path: &str, element_dst_path: &str, zip_name: &str) -> u
             format!("{}/{}", last_directory_before_target, path_elements[i]);
     }
 
+    // println!(
+    //     "1- compresse ->\ncommand->\ncd {}",
+    //     &last_directory_before_target
+    // );
     Command::new("cd").arg(last_directory_before_target);
+    // println!(
+    //     "2- compresse ->\ncommand->\nzip -r {} {}",
+    //     &compression_name,
+    //     &path_elements.last().unwrap()
+    // );
     Command::new("zip")
         .arg("-r")
         .arg(&compression_name)
         .arg(path_elements.last().unwrap());
+    println!(
+        "3- compresse ->\ncommand->\nrm -rf {}",
+        &path_elements.last().unwrap()
+    );
     Command::new("rm")
         .arg("-rf")
         .arg(path_elements.last().unwrap());
+    println!("4- compresse ->\ncommand->\ncd -");
     Command::new("cd").arg("-");
 
     get_size(&compression_name).expect(&format!(
@@ -51,7 +69,7 @@ pub fn convert_element_to_trash_item(
     element_name: &str,
     is_test: bool,
 ) -> TrashItem {
-    let element_path = get_element_path(element_name);
+    let element_path = abspath(&element_name).unwrap();
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
@@ -70,6 +88,13 @@ pub fn convert_element_to_trash_item(
 
     if config.compression {
         compression_size = Some(make_zip(&element_path, &destination_path, &hash));
+    } else {
+        let destination_path = format!("{}/{}", &get_trash_directory_path(is_test), &hash);
+        println!(
+            "Not compresse ->\ncommand->\nmv {} {}",
+            element_path, destination_path
+        );
+        // Command::new("mv").arg(&element_path).arg(&destination_path);
     }
 
     TrashItem::new(
@@ -82,14 +107,5 @@ pub fn convert_element_to_trash_item(
     )
 }
 
-// pub fn move_element(config: &Config, element: &str, ) -> Result<>
-// {
-
-// }
-
 #[cfg(test)]
-mod tests {
-
-    // #[test]
-    // fn test_convert_element_to_trash_item() {}
-}
+mod tests {}

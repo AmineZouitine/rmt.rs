@@ -8,8 +8,8 @@ const TRASH_DIRECTORY_NAME: &str = ".trash_rmt";
 const TEST_TRASH_DIRECTORY_NAME: &str = ".test_trash_rmt";
 
 // CONFIG CONSTANTE
-const CONFIG: &str = "config_rmt";
-const TEST_CONFIG: &str = "test_config_rmt";
+const CONFIG: &str = "config_rmt.yml";
+const TEST_CONFIG: &str = "test_config_rmt.yml";
 
 //DATABASE FILE CONSTANTE
 const DATA_BASE_FILE_NAME: &str = "trash.db";
@@ -55,7 +55,7 @@ fn create_config_file(is_test: bool) -> Config {
     config_manager::config_setup(&config_path)
 }
 
-fn get_home_directory_path() -> String {
+pub fn get_home_directory_path() -> String {
     home::home_dir()
         .expect("Unable to find home directory path")
         .to_str()

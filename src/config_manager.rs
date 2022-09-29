@@ -25,7 +25,6 @@ pub fn config_setup(config_path: &str) -> Config {
             current_config
         });
     }
-
     current_config
 }
 
