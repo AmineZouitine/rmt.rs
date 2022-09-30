@@ -1,19 +1,12 @@
 name: publish
 
-# on:
-#   push:
-#     push:
-#       branches: "master"
-#     tags:
-#       - "*"
-
 on:
-  # pull_request:
   push:
-    branches:
-      - main
-    # tags:
-    #   - '*'
+    push:
+      branches: main
+    tags:
+      - "*"
+
 
 jobs:
   deploy-linux:
