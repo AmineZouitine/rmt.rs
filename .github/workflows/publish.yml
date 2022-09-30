@@ -101,9 +101,9 @@ jobs:
       - name: Package
         shell: bash
         run: |
-          #strip target/${{ matrix.os }}/release/rmt
-          cd target/${{ matrix.os }}/release          
-          tar czvf ../../../rmt-${{ matrix.os }}.tar.gz rmt
+          #strip target/release/rmt
+          cd target/release          
+          tar czvf ../../rmt-${{ matrix.os }}.tar.gz rmt
           cd -
       - name: Upload
         uses: actions/upload-artifact@v2
