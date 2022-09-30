@@ -9,8 +9,8 @@ on:
     #   - '*'
 
 jobs:
-  deploy:
-    name: deploy
+  deploy-linux:
+    name: deploy-${{ matrix.target }}
     # needs: [test]
     # if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
@@ -46,3 +46,65 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
             path: ./rmt-${{ matrix.target }}.tar.gz
+  deploy-others:
+    name:  deploy-${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        arch: [main, alt]
+        include:
+          # - os: ubuntu-latest
+          #   platform: linux
+          - os: windows-latest
+            ls: dir
+          # - os: ubuntu-latest
+          #   arch: alt
+          #   alt_arch_name: aarch64
+          - os: macos-latest
+            arch: alt
+            alt_arch_name: arm64
+        exclude:
+          - os: windows-latest
+            arch: alt
+          - os: macos-latest
+            arch: alt
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set up rust
+        if: matrix.os != 'ubuntu-latest'
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+
+      - run: rustup target add aarch64-apple-darwin
+        if: matrix.os == 'macos-latest'
+
+      - run: rustup toolchain install stable-i686-pc-windows-msvc
+        if: matrix.os == 'windows-latest'
+
+      - run: rustup target add i686-pc-windows-msvc
+        if: matrix.os == 'windows-latest'
+
+      - name: Build target
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target ${{ matrix.os }}
+
+      - name: Package
+        shell: bash
+        run: |
+          #strip target/${{ matrix.os }}/release/rmt
+          cd target/${{ matrix.os }}/release          
+          tar czvf ../../../rmt-${{ matrix.os }}.tar.gz rmt
+          cd -
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+            path: ./rmt-${{ matrix.os }}.tar.gz
