@@ -52,7 +52,6 @@ jobs:
     strategy:
       matrix:
         target: [x86_64-apple-darwin, aarch64-apple-darwin]
-
     steps:
       - uses: actions/checkout@v2
 
