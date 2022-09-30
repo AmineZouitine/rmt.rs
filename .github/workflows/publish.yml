@@ -47,7 +47,7 @@ jobs:
         with:
             path: ./rmt-${{ matrix.target }}.tar.gz
   deploy-macos:
-    name:  deploy-${{ matrix.os }} 
+    name:  deploy-${{ matrix.target }} 
     runs-on: macos-latest
     strategy:
       matrix:
@@ -62,23 +62,23 @@ jobs:
           toolchain: nightly
           override: true
 
-      # - run: rustup target add aarch64-apple-darwin
+      - run: rustup target add aarch64-apple-darwin
 
       - name: Build target
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-          args: --release --target ${{ matrix.os }}
+          args: --release --target ${{ matrix.target }}
 
       - name: Package
         shell: bash
         run: |
-          #strip target/${{ matrix.os }}/release/rmt
-          cd target/${{ matrix.os }}/release          
-          tar czvf ../../../rmt-${{ matrix.os }}.tar.gz rmt
+          #strip target/${{ matrix.target }}/release/rmt
+          cd target/${{ matrix.target }}/release          
+          tar czvf ../../../rmt-${{ matrix.target }}.tar.gz rmt
           cd -
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
-            path: ./rmt-${{ matrix.os }}.tar.gz
+            path: ./rmt-${{ matrix.target }}.tar.gz
