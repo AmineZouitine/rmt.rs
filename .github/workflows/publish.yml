@@ -42,6 +42,7 @@ jobs:
           cd target/${{ matrix.target }}/release          
           tar czvf ../../../rmt-${{ matrix.target }}.tar.gz rmt
           cd -
+      - name: Upload
         uses: actions/upload-artifact@v2
         with:
             path: ./rmt-${{ matrix.target }}.tar.gz
