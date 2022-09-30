@@ -46,6 +46,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
             path: ./rmt-${{ matrix.target }}.tar.gz
+
   deploy-others:
     name:  deploy-${{ matrix.os }} 
     runs-on: ${{ matrix.os }}
@@ -95,7 +96,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --release --target ${{ matrix.os }}
+          args: --release 
 
       - name: Package
         shell: bash
