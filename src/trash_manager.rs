@@ -1,8 +1,13 @@
-use crate::{config::Config, structure_manager::get_trash_directory_path, trash_item::TrashItem};
+use crate::{
+    config::Config, data_manager, structure_manager::get_trash_directory_path,
+    trash_item::TrashItem,
+};
 
 use chrono;
 use fs_extra::dir::get_size;
+use rusqlite::Connection;
 use sha256;
+use std::fs;
 use std::{ffi::OsStr, path::Path};
 
 pub fn abspath(p: &str) -> Option<String> {
@@ -51,11 +56,12 @@ pub fn abspath(p: &str) -> Option<String> {
 //     ))
 // }
 
-pub fn convert_element_to_trash_item(
+pub fn add_element_to_trash(
+    connection: &Connection,
     config: &Config,
     element_name: &str,
     is_test: bool,
-) -> TrashItem {
+) {
     let element_path = abspath(&element_name).unwrap();
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
@@ -74,23 +80,22 @@ pub fn convert_element_to_trash_item(
     if config.compression {
         // TODO
     } else {
-        let destination_path = format!("{}/{}", &get_trash_directory_path(is_test), &hash);
-        fs_extra::copy_items(
-            &vec![&element_path],
-            &destination_path,
-            &fs_extra::dir::CopyOptions::new(),
-        )
-        .unwrap();
+        let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
+        println!("old_name -> {}\n new_name -> {}", &element_path, &new_name);
+
+        fs::rename(&element_path, &new_name).unwrap();
     }
 
-    TrashItem::new(
+    let trash_item = TrashItem::new(
         element_name.to_string(),
         hash,
         element_path,
         date.to_string(),
         element_size,
         compression_size,
-    )
+    );
+
+    data_manager::insert_trash_item(connection, &trash_item, is_test);
 }
 
 #[cfg(test)]
