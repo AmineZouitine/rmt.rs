@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, PartialEq)]
 pub struct TrashItem {
     pub id: i8,
@@ -27,5 +29,18 @@ impl TrashItem {
             real_size,
             compression_size,
         }
+    }
+}
+
+
+impl fmt::Display for TrashItem
+{
+     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut compression_size = 0;
+        if let Some(size) = self.compression_size {
+            compression_size = size;
+        }
+
+        write!(f, " date: {}  name: {}  inital_path: {} size: {} compressed: {} compression_size: {}", self.date, self.name, self.path,self.real_size, self.compression_size.is_some(), compression_size)
     }
 }
