@@ -2,11 +2,8 @@ name: publish
 
 on:
   push:
-    push:
-      branches: main
     tags:
       - "*"
-
 
 jobs:
   deploy-linux:
