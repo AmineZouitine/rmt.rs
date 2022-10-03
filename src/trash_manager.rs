@@ -98,5 +98,16 @@ pub fn add_element_to_trash(
     data_manager::insert_trash_item(connection, &trash_item, is_test);
 }
 
+pub fn add_all_elements_to_trash(
+    connection: &Connection,
+    config: &Config,
+    element_name: &[String],
+    is_test: bool,
+) {
+    for path in element_name {
+        add_element_to_trash(connection, config, path, is_test);
+    }
+}
+
 #[cfg(test)]
 mod tests {}
