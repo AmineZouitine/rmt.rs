@@ -17,44 +17,6 @@ pub fn abspath(p: &str) -> Option<String> {
         .and_then(|p| p.into_os_string().into_string().ok())
 }
 
-// fn make_zip(element_src_path: &str, element_dst_path: &str, zip_name: &str) -> u64 {
-//     let mut path_elements: Vec<&str> = element_src_path.split("/").collect();
-//     if path_elements.len() >= 1 && path_elements[0].is_empty() {
-//         path_elements.remove(0);
-//     }
-
-//     if element_src_path.is_empty() {
-//         return 0;
-//     }
-
-//     let compression_name = format!("{}/{}.{}", &element_dst_path, &zip_name, "zip");
-
-//     let mut last_directory_before_target = String::new();
-//     for i in 0..path_elements.len() - 1 {
-//         last_directory_before_target =
-//             format!("{}/{}", last_directory_before_target, path_elements[i]);
-//     }
-
-//     println!("elm src path -> {}", element_src_path);
-//     println!("last directory -> {}", last_directory_before_target);
-//     Command::new("cd").arg(last_directory_before_target).status().unwrap();
-
-//     Command::new("zip")
-//         .arg("-r")
-//         .arg(&compression_name)
-//         .arg(path_elements.last().unwrap())
-//         .status().unwrap();
-
-//     Command::new("rm")
-//         .arg("-rf")
-//         .arg(&element_src_path)
-//         .status().unwrap();
-
-//     get_size(&compression_name).expect(&format!(
-//         "Unable to get element size of {}",
-//         compression_name
-//     ))
-// }
 
 pub fn add_element_to_trash(
     connection: &Connection,
@@ -81,8 +43,6 @@ pub fn add_element_to_trash(
         // TODO
     } else {
         let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
-        println!("old_name -> {}\n new_name -> {}", &element_path, &new_name);
-
         fs::rename(&element_path, &new_name).unwrap();
     }
 
