@@ -1,8 +1,8 @@
 use crate::data_manager;
-use colored::Colorize;
+use colored::{ColoredString, Colorize};
 use rusqlite::Connection;
 
-pub const MAX_ELEMENT_PER_PAGE: usize = 6;
+pub const MAX_ELEMENT_PER_PAGE: usize = 10;
 
 pub struct DisplayInfos {
     pub current_cursor_index: usize,
@@ -10,6 +10,12 @@ pub struct DisplayInfos {
     pub total_elements: usize,
     pub max_element_per_page: usize,
     pub total_page: f64, // Should not be f64 but usize, but ceiling problems
+    pub selected_trash_items: SelectedTrashItems,
+}
+
+pub struct SelectedTrashItems {
+    pub restore: Vec<u8>, // store the id of the trash item
+    pub delete: Vec<u8>,  // store the id of the trash item
 }
 
 impl DisplayInfos {
@@ -20,6 +26,10 @@ impl DisplayInfos {
             total_elements,
             max_element_per_page: MAX_ELEMENT_PER_PAGE,
             total_page: (total_elements as f64 / MAX_ELEMENT_PER_PAGE as f64).ceil(),
+            selected_trash_items: SelectedTrashItems {
+                restore: Vec::<u8>::new(),
+                delete: Vec::<u8>::new(),
+            },
         }
     }
 }
@@ -45,6 +55,8 @@ pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &Dis
 
     println!("\r");
     display_number(display_infos);
+    println!("\r");
+    display_inputs_commands();
 }
 
 fn display_number(display_infos: &DisplayInfos) {
@@ -56,4 +68,22 @@ fn display_number(display_infos: &DisplayInfos) {
         }
     }
     println!("\r");
+}
+
+fn display_inputs_commands() {
+    println!(
+        "{} • {} • {} • {} • {} • {} • {} • {}\r",
+        display_input("↑/k", "up"),
+        display_input("↓/j", "down"),
+        display_input("esc", "filter"),
+        display_input("ctrl(d)", "clear filter"),
+        display_input("space", "restore"),
+        display_input("del", "flush"),
+        display_input("enter", "validation"),
+        display_input("q", "exist")
+    );
+}
+
+fn display_input(inputs: &str, name: &str) -> String {
+    format!("{} {}", inputs.green().bold(), name.truecolor(150,150, 150))
 }
