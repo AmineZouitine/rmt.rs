@@ -29,6 +29,7 @@ pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &Dis
 
     let starting_index = (display_infos.current_page - 1) * display_infos.max_element_per_page;
     let end_index = (display_infos.current_page) * display_infos.max_element_per_page;
+
     for i in starting_index..end_index {
         if i >= trash_items.len() {
             continue;
@@ -41,4 +42,18 @@ pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &Dis
         }
         println!("{}\r", display_element);
     }
+
+    println!("\r");
+    display_number(display_infos);
+}
+
+fn display_number(display_infos: &DisplayInfos) {
+    for i in 1..=display_infos.total_page as usize {
+        if i == display_infos.current_page {
+            print!("{}", "•".green().bold());
+        } else {
+            print!("{}", "•".bold());
+        }
+    }
+    println!("\r");
 }

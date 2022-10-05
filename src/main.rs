@@ -8,8 +8,6 @@ pub mod trash_item;
 pub mod trash_manager;
 use std::env;
 
-use termion::input;
-
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
