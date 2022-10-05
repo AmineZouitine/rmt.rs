@@ -28,7 +28,8 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
         data_manager::find_all_trash_items(connection, is_test).len(),
     );
     println!("Which elements do you want to restore ?\n\r");
-    display_manager::display_trash(connection, is_test, &display_informations);
+    let mut current_selected_item =
+        display_manager::display_trash(connection, is_test, &display_informations);
     stdout.flush().unwrap();
     for c in stdin.keys() {
         write!(
@@ -47,14 +48,23 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
             Key::Char('l') | Key::Right => set_page(&mut display_informations, true),
             Key::Esc => println!("Toggle_filter"),
             Key::Ctrl('d') => println!("Clear filter"),
-            Key::Char(' ') => println!("Toggle restore"),
+            Key::Char(' ') => toggle_item(
+                current_selected_item,
+                &mut display_informations.selected_trash_items.restore,
+                &mut display_informations.selected_trash_items.delete,
+            ),
+            Key::Delete => toggle_item(
+                current_selected_item,
+                &mut display_informations.selected_trash_items.delete,
+                &mut display_informations.selected_trash_items.restore,
+            ),
             Key::Char('\n') => println!("Validation"),
-            Key::Delete => println!("Toggle flush"),
             e => println!("Salut {:?}", e),
         }
 
         println!("Which elements do you want to restore ?\n\r");
-        display_manager::display_trash(connection, is_test, &display_informations);
+        current_selected_item =
+            display_manager::display_trash(connection, is_test, &display_informations);
         stdout.flush().unwrap();
     }
 
@@ -87,4 +97,24 @@ fn set_page(display_infos: &mut DisplayInfos, next: bool) {
             (display_infos.current_page - 1) * display_infos.max_element_per_page;
     }
 }
+
+fn toggle_item(selected_elements: i8, storage: &mut Vec<i8>, linked_storage: &mut Vec<i8>) {
+    if storage.contains(&selected_elements) {
+        let index = storage
+            .iter()
+            .position(|x| *x == selected_elements)
+            .unwrap();
+        storage.remove(index);
+    } else {
+        if linked_storage.contains(&selected_elements) {
+            let index = linked_storage
+                .iter()
+                .position(|x| *x == selected_elements)
+                .unwrap();
+            linked_storage.remove(index);
+        }
+        storage.push(selected_elements);
+    }
+}
+
 // fn set_current_page()
