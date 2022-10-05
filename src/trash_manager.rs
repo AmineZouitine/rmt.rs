@@ -17,7 +17,6 @@ pub fn abspath(p: &str) -> Option<String> {
         .and_then(|p| p.into_os_string().into_string().ok())
 }
 
-
 pub fn add_element_to_trash(
     connection: &Connection,
     config: &Config,

@@ -21,8 +21,5 @@ fn main() {
 
     let (config, connection) = structure_manager::setup_structure(is_test);
     // trash_manager::add_all_elements_to_trash(&connection, &config, &args[1..], true);
-    // display_manager::display_trash(&connection, true);
-    // display_manager::user_input(&connection, is_test);
     input_manager::handle_input(&connection, is_test);
-    // display_manager::display_trash(&connection, is_test, 0);
 }
