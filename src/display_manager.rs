@@ -1,4 +1,4 @@
-use crate::data_manager;
+use crate::{data_manager, trash_item::TrashItem};
 use colored::{ColoredString, Colorize};
 use rusqlite::Connection;
 
@@ -10,12 +10,8 @@ pub struct DisplayInfos {
     pub total_elements: usize,
     pub max_element_per_page: usize,
     pub total_page: f64, // Should not be f64 but usize, but ceiling problems
+    pub filter: Filter,
     pub selected_trash_items: SelectedTrashItems,
-}
-
-pub struct SelectedTrashItems {
-    pub restore: Vec<i8>, // store the id of the trash item
-    pub delete: Vec<i8>,  // store the id of the trash item
 }
 
 impl DisplayInfos {
@@ -26,6 +22,10 @@ impl DisplayInfos {
             total_elements,
             max_element_per_page: MAX_ELEMENT_PER_PAGE,
             total_page: (total_elements as f64 / MAX_ELEMENT_PER_PAGE as f64).ceil(),
+            filter: Filter {
+                is_filter: false,
+                content: String::new(),
+            },
             selected_trash_items: SelectedTrashItems {
                 restore: Vec::<i8>::new(),
                 delete: Vec::<i8>::new(),
@@ -34,7 +34,28 @@ impl DisplayInfos {
     }
 }
 
+pub struct SelectedTrashItems {
+    pub restore: Vec<i8>, // store the id of the trash item
+    pub delete: Vec<i8>,  // store the id of the trash item
+}
+
+pub struct Filter {
+    pub is_filter: bool,
+    pub content: String,
+}
+
+impl Filter {
+    pub fn is_valid_item(&self, trash_item: &TrashItem) -> bool {
+        let filter_content = &self.content;
+        trash_item.name.contains(filter_content)
+            || trash_item.date.contains(filter_content)
+            || trash_item.path.contains(filter_content)
+    }
+}
+
 pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &DisplayInfos) -> i8 {
+    println!("Which elements do you want to restore ?\n\r");
+
     let trash_items = data_manager::find_all_trash_items(connection, is_test);
 
     let starting_index = (display_infos.current_page - 1) * display_infos.max_element_per_page;
@@ -43,7 +64,7 @@ pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &Dis
     let mut current_selected_id = 0;
 
     for i in starting_index..end_index {
-        if i >= trash_items.len() {
+        if i >= trash_items.len() || !display_infos.filter.is_valid_item(&trash_items[i]) {
             continue;
         }
         let trash_item_str = format!("{} ➜ {}", i, trash_items[i]).white();
@@ -70,6 +91,14 @@ pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &Dis
     println!("\r");
     display_number(display_infos);
     println!("\r");
+    if display_infos.filter.is_filter {
+        println!(
+            "{}: {}",
+            "Filter".green().bold(),
+            display_infos.filter.content
+        );
+        println!("\r")
+    }
     display_inputs_commands();
 
     current_selected_id

@@ -27,9 +27,10 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
     let mut display_informations = display_manager::DisplayInfos::new(
         data_manager::find_all_trash_items(connection, is_test).len(),
     );
-    println!("Which elements do you want to restore ?\n\r");
+
     let mut current_selected_item =
         display_manager::display_trash(connection, is_test, &display_informations);
+
     stdout.flush().unwrap();
     for c in stdin.keys() {
         write!(
@@ -40,31 +41,44 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
         )
         .unwrap();
 
-        match c.unwrap() {
-            Key::Char('q') | Key::Ctrl('c') | Key::Ctrl('z') => break,
-            Key::Char('k') | Key::Up => set_cursor(&mut display_informations, true),
-            Key::Char('j') | Key::Down => set_cursor(&mut display_informations, false),
-            Key::Char('h') | Key::Left => set_page(&mut display_informations, false),
-            Key::Char('l') | Key::Right => set_page(&mut display_informations, true),
-            Key::Esc => println!("Toggle_filter"),
-            Key::Ctrl('d') => println!("Clear filter"),
-            Key::Char(' ') => toggle_item(
-                current_selected_item,
-                &mut display_informations.selected_trash_items.restore,
-                &mut display_informations.selected_trash_items.delete,
-            ),
-            Key::Delete => toggle_item(
-                current_selected_item,
-                &mut display_informations.selected_trash_items.delete,
-                &mut display_informations.selected_trash_items.restore,
-            ),
-            Key::Char('\n') => println!("Validation"),
-            e => println!("Salut {:?}", e),
+        if display_informations.filter.is_filter {
+            match c.unwrap() {
+                Key::Char(c) => {
+                    display_informations.filter.content =
+                        format!("{}{}", &display_informations.filter.content, c)
+                }
+                Key::Ctrl('d') => display_informations.filter.content.clear(),
+                Key::Backspace => {
+                    display_informations.filter.content.pop();
+                }
+                _ => display_informations.filter.is_filter = false,
+            }
+        } else {
+            match c.unwrap() {
+                Key::Char('q') | Key::Ctrl('c') | Key::Ctrl('z') => break,
+                Key::Char('k') | Key::Up => set_cursor(&mut display_informations, true),
+                Key::Char('j') | Key::Down => set_cursor(&mut display_informations, false),
+                Key::Char('h') | Key::Left => set_page(&mut display_informations, false),
+                Key::Char('l') | Key::Right => set_page(&mut display_informations, true),
+                Key::Esc => display_informations.filter.is_filter = true,
+                Key::Ctrl('d') => display_informations.filter.content.clear(),
+                Key::Char(' ') => toggle_item(
+                    current_selected_item,
+                    &mut display_informations.selected_trash_items.restore,
+                    &mut display_informations.selected_trash_items.delete,
+                ),
+                Key::Delete => toggle_item(
+                    current_selected_item,
+                    &mut display_informations.selected_trash_items.delete,
+                    &mut display_informations.selected_trash_items.restore,
+                ),
+                Key::Char('\n') => println!("Validation"),
+                _ => (),
+            }
         }
-
-        println!("Which elements do you want to restore ?\n\r");
         current_selected_item =
             display_manager::display_trash(connection, is_test, &display_informations);
+
         stdout.flush().unwrap();
     }
 
