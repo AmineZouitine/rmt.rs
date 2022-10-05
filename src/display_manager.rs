@@ -27,8 +27,13 @@ impl DisplayInfos {
 pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &DisplayInfos) {
     let trash_items = data_manager::find_all_trash_items(connection, is_test);
 
-    for (i, trash_item) in trash_items.iter().enumerate() {
-        let display_element = format!("{} ➜ {}", i, trash_item);
+    let starting_index = (display_infos.current_page - 1) * display_infos.max_element_per_page;
+    let end_index = (display_infos.current_page) * display_infos.max_element_per_page;
+    for i in starting_index..end_index {
+        if i >= trash_items.len() {
+            continue;
+        }
+        let display_element = format!("{} ➜ {}", i, trash_items[i]);
         if i == display_infos.current_cursor_index {
             print!("{}    ", ">".green().bold());
             println!("{}\r", display_element);

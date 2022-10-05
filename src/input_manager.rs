@@ -43,14 +43,8 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
             Key::Char('q') | Key::Ctrl('c') | Key::Ctrl('z') => break,
             Key::Char('k') | Key::Up => set_cursor(&mut display_informations, true),
             Key::Char('j') | Key::Down => set_cursor(&mut display_informations, false),
-            Key::Char('h') | Key::Left => set_page(
-                &mut display_informations,
-                false,
-            ),
-            Key::Char('l') | Key::Right => set_page(
-                &mut display_informations,
-                true,
-            ),
+            Key::Char('h') | Key::Left => set_page(&mut display_informations, false),
+            Key::Char('l') | Key::Right => set_page(&mut display_informations, true),
             Key::Esc => println!("Toggle_filter"),
             Key::Ctrl('d') => println!("Clear filter"),
             Key::Char(' ') => println!("Toggle restore"),
