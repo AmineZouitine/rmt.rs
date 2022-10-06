@@ -53,10 +53,16 @@ impl Filter {
     }
 }
 
-pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &DisplayInfos) -> i8 {
+pub fn display_trash(
+    connection: &Connection,
+    is_test: bool,
+    display_infos: &mut DisplayInfos,
+) -> i8 {
     println!("Which elements do you want to restore ?\n\r");
 
-    let trash_items = data_manager::find_all_trash_items(connection, is_test);
+    let mut trash_items = data_manager::find_all_trash_items(connection, is_test);
+    trash_items.retain(|item| display_infos.filter.is_valid_item(item));
+    display_infos.total_elements = trash_items.len();
 
     let starting_index = (display_infos.current_page - 1) * display_infos.max_element_per_page;
     let end_index = (display_infos.current_page) * display_infos.max_element_per_page;
@@ -64,7 +70,7 @@ pub fn display_trash(connection: &Connection, is_test: bool, display_infos: &Dis
     let mut current_selected_id = 0;
 
     for i in starting_index..end_index {
-        if i >= trash_items.len() || !display_infos.filter.is_valid_item(&trash_items[i]) {
+        if i >= trash_items.len() {
             continue;
         }
         let trash_item_str = format!("{} ➜ {}", i, trash_items[i]).white();

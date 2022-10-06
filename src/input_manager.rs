@@ -29,7 +29,7 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
     );
 
     let mut current_selected_item =
-        display_manager::display_trash(connection, is_test, &display_informations);
+        display_manager::display_trash(connection, is_test, &mut display_informations);
 
     stdout.flush().unwrap();
     for c in stdin.keys() {
@@ -52,7 +52,7 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
                     display_informations.filter.content.pop();
                 }
                 _ => display_informations.filter.is_filter = false,
-            }
+            };
         } else {
             match c.unwrap() {
                 Key::Char('q') | Key::Ctrl('c') | Key::Ctrl('z') => break,
@@ -60,7 +60,11 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
                 Key::Char('j') | Key::Down => set_cursor(&mut display_informations, false),
                 Key::Char('h') | Key::Left => set_page(&mut display_informations, false),
                 Key::Char('l') | Key::Right => set_page(&mut display_informations, true),
-                Key::Esc => display_informations.filter.is_filter = true,
+                Key::Esc => {
+                    display_informations.filter.is_filter = true;
+                    display_informations.current_cursor_index = 0;
+                    display_informations.current_page = 1;
+                }
                 Key::Ctrl('d') => display_informations.filter.content.clear(),
                 Key::Char(' ') => toggle_item(
                     current_selected_item,
@@ -77,7 +81,7 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
             }
         }
         current_selected_item =
-            display_manager::display_trash(connection, is_test, &display_informations);
+            display_manager::display_trash(connection, is_test, &mut display_informations);
 
         stdout.flush().unwrap();
     }
