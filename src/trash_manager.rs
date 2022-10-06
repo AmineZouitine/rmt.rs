@@ -68,5 +68,17 @@ pub fn add_all_elements_to_trash(
     }
 }
 
+// pub fn remove_element(trash_item_hash: &str, is_test: bool){
+//     let element_path = format!("{}/{}", structure_manager::get_trash_directory_path(is_test), trash_item_hash);
+//     std::fs::remove_dir_all(element_path).unwrap();
+// }
+
+// pub fn restore_element(trash_item_hash: &str, is_test: bool)
+// {
+//     let element_path = format!("{}/{}", structure_manager::get_trash_directory_path(is_test), trash_item_hash);
+//     let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
+//     fs::rename(&element_path, &new_name).unwrap();
+// }
+
 #[cfg(test)]
 mod tests {}

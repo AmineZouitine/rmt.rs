@@ -113,6 +113,34 @@ pub fn get_data_base_path(is_test: bool) -> String {
     )
 }
 
+pub fn get_element_name(element_path_with_name: &str) -> String {
+    let mut elements: Vec<&str> = element_path_with_name.split("/").collect();
+    elements.retain(|element| !element.is_empty());
+    if elements.is_empty() {
+        return "".to_string();
+    }
+    elements.last().unwrap().to_string()
+}
+
+pub fn get_element_path(element_path_with_name: &str) -> String {
+    if element_path_with_name.matches("/").count() == 1 {
+        return "/".to_string();
+    }
+
+    let mut size = element_path_with_name.len();
+    if !element_path_with_name.is_empty()
+        && element_path_with_name.as_bytes()[element_path_with_name.len() - 1] as char == '/'
+    {
+        size -= 1;
+    }
+    for i in (0..size).rev() {
+        if element_path_with_name.as_bytes()[i] as char == '/' {
+            return element_path_with_name[0..i].to_string();
+        }
+    }
+    element_path_with_name.to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,5 +175,25 @@ mod tests {
         assert!(fs::metadata(&path_config).unwrap().is_file());
         assert!(fs::metadata(&path_data_base).unwrap().is_file());
         clear_structure(is_test);
+    }
+
+    #[test]
+    fn test_get_element_name() {
+        assert_eq!(get_element_name(""), "");
+        assert_eq!(get_element_name("/"), "");
+        assert_eq!(get_element_name("/home/test/oui.txt"), "oui.txt");
+        assert_eq!(get_element_name("/home"), "home");
+        assert_eq!(get_element_name("/home/test"), "test");
+        assert_eq!(get_element_name("/home/test/"), "test");
+    }
+
+    #[test]
+    fn test_get_element_path() {
+        // assert_eq!(get_element_path(""), "");
+        // assert_eq!(get_element_path("/home/test/oui.txt"), "/home/test");
+        // assert_eq!(get_element_path("/home"), "/");
+        // assert_eq!(get_element_path("/home/test"), "/home");
+        assert_eq!(get_element_path("/home/test/"), "/home");
+        // assert_eq!(get_element_path("/home/test/oui/non"), "/home/test/oui");
     }
 }
