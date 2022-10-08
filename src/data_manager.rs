@@ -72,6 +72,12 @@ pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) -> 
         .unwrap()
 }
 
+
+pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) {
+    let table_name = structure_manager::get_data_base_table_name(is_test);
+    connection.execute(&format!("DELETE FROM {} WHERE id = {}", table_name, id), params![]).unwrap();
+}
+
 pub fn draw_data_base(connection: &Connection, is_test: bool) {
     let trash_items = find_all_trash_items(connection, is_test);
     for (i, item) in trash_items.iter().enumerate() {

@@ -1,9 +1,8 @@
-use crate::config::Trash;
+use crate::structure_manager;
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
 };
-use crate::{structure_manager, trash_item};
 
 use chrono;
 use colored::Colorize;
@@ -75,6 +74,7 @@ pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_i
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
         remove_element(&trash_item.hash, is_test);
+        data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
 }
 
@@ -91,6 +91,7 @@ pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
         restore_element(&trash_item, is_test);
+        data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
 }
 
