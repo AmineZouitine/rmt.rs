@@ -1,5 +1,7 @@
-use crate::structure_manager;
+use std::vec;
+
 use crate::trash_item::TrashItem;
+use crate::{structure_manager, trash_item};
 use rusqlite::{params, types::FromSql, Connection, Row};
 
 pub fn setup_data_base(is_test: bool) -> Connection {
@@ -61,6 +63,13 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
     }
 
     trash_items
+}
+
+pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) -> TrashItem {
+    find_all_trash_items(connection, is_test)
+        .into_iter()
+        .find(|trash_item| trash_item.id == id)
+        .unwrap()
 }
 
 pub fn draw_data_base(connection: &Connection, is_test: bool) {

@@ -189,11 +189,11 @@ mod tests {
 
     #[test]
     fn test_get_element_path() {
-        // assert_eq!(get_element_path(""), "");
-        // assert_eq!(get_element_path("/home/test/oui.txt"), "/home/test");
-        // assert_eq!(get_element_path("/home"), "/");
-        // assert_eq!(get_element_path("/home/test"), "/home");
+        assert_eq!(get_element_path(""), "");
+        assert_eq!(get_element_path("/home/test/oui.txt"), "/home/test");
+        assert_eq!(get_element_path("/home"), "/");
+        assert_eq!(get_element_path("/home/test"), "/home");
         assert_eq!(get_element_path("/home/test/"), "/home");
-        // assert_eq!(get_element_path("/home/test/oui/non"), "/home/test/oui");
+        assert_eq!(get_element_path("/home/test/oui/non"), "/home/test/oui");
     }
 }

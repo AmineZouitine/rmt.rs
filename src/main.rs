@@ -18,6 +18,6 @@ fn main() {
     let is_test = true;
 
     let (config, connection) = structure_manager::setup_structure(is_test);
-    // trash_manager::add_all_elements_to_trash(&connection, &config, &args[1..], true);
+    trash_manager::add_all_elements_to_trash(&connection, &config, &args[1..], true);
     input_manager::handle_input(&connection, is_test);
 }

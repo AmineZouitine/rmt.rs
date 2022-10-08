@@ -1,9 +1,12 @@
+use crate::config::Trash;
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
 };
+use crate::{structure_manager, trash_item};
 
 use chrono;
+use colored::Colorize;
 use fs_extra::dir::get_size;
 use rusqlite::Connection;
 use sha256;
@@ -46,9 +49,9 @@ pub fn add_element_to_trash(
     }
 
     let trash_item = TrashItem::new(
-        element_name.to_string(),
+        structure_manager::get_element_name(element_name),
         hash,
-        element_path,
+        structure_manager::get_element_path(&element_path),
         date.to_string(),
         element_size,
         compression_size,
@@ -68,17 +71,96 @@ pub fn add_all_elements_to_trash(
     }
 }
 
-// pub fn remove_element(trash_item_hash: &str, is_test: bool){
-//     let element_path = format!("{}/{}", structure_manager::get_trash_directory_path(is_test), trash_item_hash);
-//     std::fs::remove_dir_all(element_path).unwrap();
-// }
+pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: Vec<i8>) {
+    trash_items_ids.iter().for_each(|trash_item_id| {
+        let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
+        remove_element(&trash_item.hash, is_test);
+    });
+}
 
-// pub fn restore_element(trash_item_hash: &str, is_test: bool)
-// {
-//     let element_path = format!("{}/{}", structure_manager::get_trash_directory_path(is_test), trash_item_hash);
-//     let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
-//     fs::rename(&element_path, &new_name).unwrap();
-// }
+fn remove_element(trash_item_hash: &str, is_test: bool) {
+    let element_path = format!(
+        "{}/{}",
+        structure_manager::get_trash_directory_path(is_test),
+        trash_item_hash
+    );
+    std::fs::remove_dir_all(element_path).unwrap();
+}
+
+pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_ids: Vec<i8>) {
+    trash_items_ids.iter().for_each(|trash_item_id| {
+        let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
+        restore_element(&trash_item, is_test);
+    });
+}
+
+fn restore_element(trash_item: &TrashItem, is_test: bool) {
+    let path_in_trash = format!(
+        "{}/{}",
+        structure_manager::get_trash_directory_path(is_test),
+        trash_item.hash
+    );
+    if Path::new(&trash_item.path).is_dir() {
+        let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
+        let element_path_restored = format!("{}/{}", &trash_item.path, "restored_item");
+        if !Path::new(&element_path_name).exists() {
+            println!("{} has been restored ! :D", trash_item.name.green().bold());
+            println!(
+                "You can find it at this path: {}",
+                element_path_name.green().bold()
+            );
+            fs::rename(&path_in_trash, &element_path_name).unwrap();
+        } else if !Path::new(&element_path_restored).exists() {
+            println!("{} has been restored ! :D", trash_item.name.green().bold());
+            println!(
+                "You can find it at this path: {}",
+                element_path_restored.green().bold()
+            );
+            fs::rename(&path_in_trash, &element_path_restored).unwrap();
+        }
+        return;
+    }
+    println!("Unfortunately Path {} doesn't exist anymore, so we can't restore your element to the original path :c\n{}",
+     &trash_item.path.green().bold(), "Please enter a new absolute path to restore your element".bold());
+
+    let mut new_path = String::new();
+    std::io::stdin().read_line(&mut new_path).unwrap();
+    while !Path::new(&new_path).is_dir()
+        || Path::new(&format!("{}/{}", &new_path, &trash_item.name)).exists()
+    {
+        if !Path::new(&new_path).exists() {
+            println!(
+                "{} doesn't exist ! You have to give a valid {} path of a {}",
+                new_path.green().bold(),
+                "absolute path".green().bold(),
+                "directory".green().bold()
+            );
+        } else if !Path::new(&new_path).is_dir() {
+            println!(
+                "{} exist but it's not a {} ! ",
+                new_path.green().bold(),
+                "directory".green().bold()
+            );
+        } else {
+            println!(
+                "{} exist and it's a {}, but it's already contain a element with the same name {}!",
+                new_path.green().bold(),
+                "directory".green().bold(),
+                trash_item.name.green().bold()
+            );
+        }
+    }
+    fs::rename(
+        &path_in_trash,
+        &format!("{}/{}", &new_path, &trash_item.name),
+    )
+    .unwrap();
+    println!("{} has been restored ! :D", trash_item.name.green().bold());
+    println!(
+        "You can find it at this path: {}",
+        format!("{}/{}", &new_path, &trash_item.name).green().bold()
+    );
+}
 
 #[cfg(test)]
 mod tests {}
