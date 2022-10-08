@@ -73,7 +73,6 @@ pub fn add_all_elements_to_trash(
 pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &Vec<i8>) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
-        println!("trash item = {}\r", trash_item);
         remove_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
@@ -85,7 +84,6 @@ fn remove_element(trash_item: &TrashItem, is_test: bool) {
         structure_manager::get_trash_directory_path(is_test),
        trash_item.hash 
     );
-    println!("element path = {}\r", element_path);
     if Path::new(&element_path).is_dir() {
         std::fs::remove_dir_all(&element_path).unwrap();
     }
@@ -99,6 +97,7 @@ fn remove_element(trash_item: &TrashItem, is_test: bool) {
 pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &Vec<i8>) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
+        println!("trash item = {}\r", trash_item);
         restore_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
@@ -110,27 +109,33 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         structure_manager::get_trash_directory_path(is_test),
         trash_item.hash
     );
+
+    println!("path_in_trash: {}\r", path_in_trash);
+
     if Path::new(&trash_item.path).is_dir() {
         let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
         let element_path_restored = format!("{}/{}", &trash_item.path, "restored_item");
         if !Path::new(&element_path_name).exists() {
-            println!("{} has been restored ! :D", trash_item.name.green().bold());
+            println!("{} has been restored ! :D\r", trash_item.name.green().bold());
             println!(
-                "You can find it at this path: {}",
+                "You can find it at this path: {}\r",
                 element_path_name.green().bold()
             );
             fs::rename(&path_in_trash, &element_path_name).unwrap();
+            println!("path_in_trash: {}  element_path_name: {}\r", path_in_trash, element_path_name);
+            return;
         } else if !Path::new(&element_path_restored).exists() {
-            println!("{} has been restored ! :D", trash_item.name.green().bold());
+            println!("{} has been restored ! :D\r", trash_item.name.green().bold());
             println!(
-                "You can find it at this path: {}",
+                "You can find it at this path: {}\r",
                 element_path_restored.green().bold()
             );
             fs::rename(&path_in_trash, &element_path_restored).unwrap();
+            println!("path_in_trash: {}  element_path_restored: {}\r", path_in_trash, element_path_restored);
+            return;
         }
-        return;
     }
-    println!("Unfortunately Path {} doesn't exist anymore, so we can't restore your element to the original path :c\n{}",
+    println!("Unfortunately Path {} doesn't exist anymore or there is a file with the same name inside, so we can't restore your element to the original path :c\r\n{}",
      &trash_item.path.green().bold(), "Please enter a new absolute path to restore your element".bold());
 
     let mut new_path = String::new();
@@ -140,20 +145,20 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
     {
         if !Path::new(&new_path).exists() {
             println!(
-                "{} doesn't exist ! You have to give a valid {} path of a {}",
+                "{} doesn't exist ! You have to give a valid {} path of a {}\r",
                 new_path.green().bold(),
                 "absolute path".green().bold(),
                 "directory".green().bold()
             );
         } else if !Path::new(&new_path).is_dir() {
             println!(
-                "{} exist but it's not a {} ! ",
+                "{} exist but it's not a {} ! \r",
                 new_path.green().bold(),
                 "directory".green().bold()
             );
         } else {
             println!(
-                "{} exist and it's a {}, but it's already contain a element with the same name {}!",
+                "{} exist and it's a {}, but it's already contain a element with the same name {}!\r",
                 new_path.green().bold(),
                 "directory".green().bold(),
                 trash_item.name.green().bold()
@@ -165,9 +170,10 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         &format!("{}/{}", &new_path, &trash_item.name),
     )
     .unwrap();
-    println!("{} has been restored ! :D", trash_item.name.green().bold());
+    
+    println!("{} has been restored ! :D\r", trash_item.name.green().bold());
     println!(
-        "You can find it at this path: {}",
+        "You can find it at this path: {}\r",
         format!("{}/{}", &new_path, &trash_item.name).green().bold()
     );
 }
