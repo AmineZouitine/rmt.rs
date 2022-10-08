@@ -70,24 +70,33 @@ pub fn add_all_elements_to_trash(
     }
 }
 
-pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: Vec<i8>) {
+pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &Vec<i8>) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
-        remove_element(&trash_item.hash, is_test);
+        println!("trash item = {}\r", trash_item);
+        remove_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
 }
 
-fn remove_element(trash_item_hash: &str, is_test: bool) {
+fn remove_element(trash_item: &TrashItem, is_test: bool) {
     let element_path = format!(
         "{}/{}",
         structure_manager::get_trash_directory_path(is_test),
-        trash_item_hash
+       trash_item.hash 
     );
-    std::fs::remove_dir_all(element_path).unwrap();
+    println!("element path = {}\r", element_path);
+    if Path::new(&element_path).is_dir() {
+        std::fs::remove_dir_all(&element_path).unwrap();
+    }
+    else {
+        std::fs::remove_file(&element_path).unwrap();
+    }
+
+    println!("{} {}\r", trash_item.name.red().bold(), "deleted !".red().bold());
 }
 
-pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_ids: Vec<i8>) {
+pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &Vec<i8>) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
         restore_element(&trash_item, is_test);

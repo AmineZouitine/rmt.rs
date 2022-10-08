@@ -8,15 +8,15 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     data_manager,
-    display_manager::{self, DisplayInfos},
+    display_manager::{self, DisplayInfos}, structure_manager, trash_manager,
 };
 
 pub fn handle_input(connection: &Connection, is_test: bool) {
     let stdin = stdin();
-    let mut stdout = stdout().into_raw_mode().unwrap();
+    let mut stdout_display = stdout().into_raw_mode().unwrap();
 
     write!(
-        stdout,
+        stdout_display,
         "{}{}{}",
         termion::clear::All,
         termion::cursor::Goto(1, 1),
@@ -31,10 +31,10 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
     let mut current_selected_item =
         display_manager::display_trash(connection, is_test, &mut display_informations);
 
-    stdout.flush().unwrap();
+    stdout_display.flush().unwrap();
     for c in stdin.keys() {
         write!(
-            stdout,
+            stdout_display,
             "{}{}",
             termion::cursor::Goto(1, 1),
             termion::clear::All
@@ -76,17 +76,21 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
                     &mut display_informations.selected_trash_items.delete,
                     &mut display_informations.selected_trash_items.restore,
                 ),
-                Key::Char('\n') => println!("Validation"),
+                Key::Char('\n') => {
+                    trash_manager::remove_all_elements(connection, is_test, &display_informations.selected_trash_items.delete);
+                    trash_manager::restore_all_elements(connection, is_test, &display_informations.selected_trash_items.restore);
+                    break;
+                },
                 _ => (),
             }
         }
         current_selected_item =
             display_manager::display_trash(connection, is_test, &mut display_informations);
 
-        stdout.flush().unwrap();
+        stdout_display.flush().unwrap();
     }
 
-    write!(stdout, "{}", termion::cursor::Show).unwrap();
+    write!(stdout_display, "{}", termion::cursor::Show).unwrap();
 }
 
 fn set_cursor(display_infos: &mut DisplayInfos, top: bool) {

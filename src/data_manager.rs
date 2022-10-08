@@ -1,7 +1,5 @@
-use std::vec;
-
 use crate::trash_item::TrashItem;
-use crate::{structure_manager, trash_item};
+use crate::{structure_manager};
 use rusqlite::{params, types::FromSql, Connection, Row};
 
 pub fn setup_data_base(is_test: bool) -> Connection {
