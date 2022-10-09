@@ -16,7 +16,8 @@ pub fn setup_data_base(is_test: bool) -> Connection {
              path TEXT NOT NULL,
              date TEXT NOT NULL,
              real_size INTEGER NOT NULL,
-             compression_size INTEGER
+             compression_size INTEGER,
+             is_folder INTEGER NOT NULL
          )",
                 table_name
             ),
@@ -53,6 +54,7 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
             date: get(row, 4),
             real_size: get(row, 5),
             compression_size: get(row, 6),
+            is_folder: get(row, 7),
         })
     });
 
@@ -92,7 +94,7 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
 
     connection
         .execute(
-            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size) VALUES (?1, ?2, ?3, ?4, ?5, ?6)", table_name),
+            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size, is_folder) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", table_name),
             params![
                 trash_item.name,
                 trash_item.hash,
@@ -100,6 +102,7 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
                 trash_item.date,
                 trash_item.real_size,
                 trash_item.compression_size,
+                trash_item.is_folder
             ],
         )
         .expect(&format!(
@@ -140,6 +143,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             None,
+            false,
         );
         insert_trash_item(&connection, &trash_item, is_test);
 
@@ -163,6 +167,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             Some(4),
+            false,
         );
         insert_trash_item(&connection, &trash_item, is_test);
 
@@ -186,6 +191,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             None,
+            false,
         );
 
         let mut trash_item2 = TrashItem::new(
@@ -195,6 +201,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             Some(4),
+            false,
         );
 
         insert_trash_item(&connection, &trash_item1, is_test);
@@ -224,6 +231,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             None,
+            false,
         );
 
         insert_trash_item(&connection, &trash_item, is_test);

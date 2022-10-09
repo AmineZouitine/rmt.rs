@@ -41,10 +41,11 @@ pub fn add_element_to_trash(
 
     let compression_size: Option<u64> = None;
 
+    let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
+
     if config.compression {
         // TODO
     } else {
-        let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
         fs::rename(&element_path, &new_name).unwrap();
     }
 
@@ -55,6 +56,7 @@ pub fn add_element_to_trash(
         date.to_string(),
         element_size,
         compression_size,
+        Path::new(&new_name).is_dir(),
     );
 
     data_manager::insert_trash_item(connection, &trash_item, is_test);

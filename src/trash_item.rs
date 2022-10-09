@@ -9,6 +9,7 @@ pub struct TrashItem {
     pub date: String,
     pub real_size: u64,
     pub compression_size: Option<u64>,
+    pub is_folder: bool,
 }
 
 impl TrashItem {
@@ -19,6 +20,7 @@ impl TrashItem {
         date: String,
         real_size: u64,
         compression_size: Option<u64>,
+        is_folder: bool,
     ) -> Self {
         Self {
             id: -1,
@@ -28,16 +30,20 @@ impl TrashItem {
             date,
             real_size,
             compression_size,
+            is_folder,
         }
     }
 }
 
 impl fmt::Display for TrashItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+
+        let emoji = if self.is_folder { "📁" } else {"📄"};
+
         write!(
             f,
-            " date: {}  name: {}  inital_path: {} size: {}",
-            self.date, self.name, self.path, self.real_size,
+            " {} date: {}  name: {}  inital_path: {} size: {}",
+            emoji, self.date, self.name, self.path, self.real_size,
         )
     }
 }

@@ -10,21 +10,35 @@ use std::env;
 
 use colored::Colorize;
 
-fn main(){
+const USAGE: &'static str = "
+
+Usage:
+    rmt [FILES]
+    rmt display 
+Options:
+  --h     Show this screen.
+Exemple:
+    rmt test.txt 
+    rmt test.*
+";
+
+fn main() {
     let is_test = true;
     let (config, connection) = structure_manager::setup_structure(is_test);
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        println!("{}\nYou should use {}", "The arguments are not valid.".red().bold(), "rmt --h".green().bold());
+        println!(
+            "{}\nYou should use {}",
+            "The arguments are not valid.".red().bold(),
+            "rmt --h".green().bold()
+        );
         return;
     }
-    if args.contains(&String::from("--h"))
-    {
-        println!("");
+    if args.contains(&String::from("--h")) {
+        println!("{}", USAGE);
         return;
     }
-    if args.contains(&String::from("display"))
-    {
+    if args.contains(&String::from("display")) {
         input_manager::start_display(&connection, is_test);
         return;
     }
