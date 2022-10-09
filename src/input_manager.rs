@@ -8,7 +8,8 @@ use termion::raw::IntoRawMode;
 
 use crate::{
     data_manager,
-    display_manager::{self, DisplayInfos}, structure_manager, trash_manager,
+    display_manager::{self, DisplayInfos},
+    trash_manager,
 };
 
 pub fn handle_input(connection: &Connection, is_test: bool) {
@@ -77,10 +78,18 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
                     &mut display_informations.selected_trash_items.restore,
                 ),
                 Key::Char('\n') => {
-                    trash_manager::remove_all_elements(connection, is_test, &display_informations.selected_trash_items.delete);
-                    trash_manager::restore_all_elements(connection, is_test, &display_informations.selected_trash_items.restore);
+                    trash_manager::remove_all_elements(
+                        connection,
+                        is_test,
+                        &display_informations.selected_trash_items.delete,
+                    );
+                    trash_manager::restore_all_elements(
+                        connection,
+                        is_test,
+                        &display_informations.selected_trash_items.restore,
+                    );
                     break;
-                },
+                }
                 _ => (),
             }
         }

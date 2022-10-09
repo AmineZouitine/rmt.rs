@@ -82,16 +82,19 @@ fn remove_element(trash_item: &TrashItem, is_test: bool) {
     let element_path = format!(
         "{}/{}",
         structure_manager::get_trash_directory_path(is_test),
-       trash_item.hash 
+        trash_item.hash
     );
     if Path::new(&element_path).is_dir() {
         std::fs::remove_dir_all(&element_path).unwrap();
-    }
-    else {
+    } else {
         std::fs::remove_file(&element_path).unwrap();
     }
 
-    println!("{} {}\r", trash_item.name.red().bold(), "deleted !".red().bold());
+    println!(
+        "{} {}\r",
+        trash_item.name.red().bold(),
+        "deleted !".red().bold()
+    );
 }
 
 pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &Vec<i8>) {
@@ -116,22 +119,34 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
         let element_path_restored = format!("{}/{}", &trash_item.path, "restored_item");
         if !Path::new(&element_path_name).exists() {
-            println!("{} has been restored ! :D\r", trash_item.name.green().bold());
+            println!(
+                "{} has been restored ! :D\r",
+                trash_item.name.green().bold()
+            );
             println!(
                 "You can find it at this path: {}\r",
                 element_path_name.green().bold()
             );
             fs::rename(&path_in_trash, &element_path_name).unwrap();
-            println!("path_in_trash: {}  element_path_name: {}\r", path_in_trash, element_path_name);
+            println!(
+                "path_in_trash: {}  element_path_name: {}\r",
+                path_in_trash, element_path_name
+            );
             return;
         } else if !Path::new(&element_path_restored).exists() {
-            println!("{} has been restored ! :D\r", trash_item.name.green().bold());
+            println!(
+                "{} has been restored ! :D\r",
+                trash_item.name.green().bold()
+            );
             println!(
                 "You can find it at this path: {}\r",
                 element_path_restored.green().bold()
             );
             fs::rename(&path_in_trash, &element_path_restored).unwrap();
-            println!("path_in_trash: {}  element_path_restored: {}\r", path_in_trash, element_path_restored);
+            println!(
+                "path_in_trash: {}  element_path_restored: {}\r",
+                path_in_trash, element_path_restored
+            );
             return;
         }
     }
@@ -139,6 +154,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
      &trash_item.path.green().bold(), "Please enter a new absolute path to restore your element".bold());
 
     let mut new_path = String::new();
+    print!(">> ");
     std::io::stdin().read_line(&mut new_path).unwrap();
     while !Path::new(&new_path).is_dir()
         || Path::new(&format!("{}/{}", &new_path, &trash_item.name)).exists()
@@ -164,14 +180,18 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
                 trash_item.name.green().bold()
             );
         }
+        std::io::stdin().read_line(&mut new_path).unwrap();
     }
     fs::rename(
         &path_in_trash,
         &format!("{}/{}", &new_path, &trash_item.name),
     )
     .unwrap();
-    
-    println!("{} has been restored ! :D\r", trash_item.name.green().bold());
+
+    println!(
+        "{} has been restored ! :D\r",
+        trash_item.name.green().bold()
+    );
     println!(
         "You can find it at this path: {}\r",
         format!("{}/{}", &new_path, &trash_item.name).green().bold()
