@@ -78,6 +78,10 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
                     &mut display_informations.selected_trash_items.restore,
                 ),
                 Key::Char('\n') => {
+                    stdout_display.suspend_raw_mode().unwrap();
+                    write!(stdout_display, "{}", termion::cursor::Show).unwrap();
+                    write!(stdout_display, "{}", termion::clear::All).unwrap();
+
                     trash_manager::remove_all_elements(
                         connection,
                         is_test,
@@ -88,6 +92,7 @@ pub fn handle_input(connection: &Connection, is_test: bool) {
                         is_test,
                         &display_informations.selected_trash_items.restore,
                     );
+                    stdout_display.activate_raw_mode().unwrap();
                     break;
                 }
                 _ => (),
