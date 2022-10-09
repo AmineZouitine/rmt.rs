@@ -12,7 +12,7 @@ use crate::{
     trash_manager,
 };
 
-pub fn handle_input(connection: &Connection, is_test: bool) {
+pub fn start_display(connection: &Connection, is_test: bool) {
     let stdin = stdin();
     let mut stdout_display = stdout().into_raw_mode().unwrap();
 
