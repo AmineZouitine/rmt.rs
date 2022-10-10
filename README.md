@@ -17,10 +17,6 @@ Then you just need to enter this command in your terminal:
 ```sh
 tar -xf <downloaded_archive> cpad && sudo mv cpad /usr/local/bin
 ````
-#### 😎 Pro tip (optional)
-
-Add **rmt** as an **alias** instead of the **rm** command.
-
 
 ## Features
 
