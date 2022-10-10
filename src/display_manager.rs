@@ -4,6 +4,7 @@ use rusqlite::Connection;
 
 pub const MAX_ELEMENT_PER_PAGE: usize = 10;
 
+// All the informations about the display on for the "rmt display"
 pub struct DisplayInfos {
     pub current_cursor_index: usize,
     pub current_page: usize,
@@ -13,6 +14,7 @@ pub struct DisplayInfos {
     pub filter: Filter,
     pub selected_trash_items: SelectedTrashItems,
 }
+
 
 impl DisplayInfos {
     pub fn new(total_elements: usize) -> Self {
@@ -95,7 +97,7 @@ pub fn display_trash(
     }
 
     println!("\r");
-    display_number(display_infos);
+    display_pages_marks(display_infos);
     println!("\r");
     if display_infos.filter.is_filter {
         println!(
@@ -110,7 +112,9 @@ pub fn display_trash(
     current_selected_id
 }
 
-fn display_number(display_infos: &DisplayInfos) {
+
+// Use to display dot, to indicate the current page and the total numbers of pages
+fn display_pages_marks(display_infos: &DisplayInfos) {
     for i in 1..=display_infos.total_page as usize {
         if i == display_infos.current_page {
             print!("{}", "•".green().bold());
@@ -121,6 +125,7 @@ fn display_number(display_infos: &DisplayInfos) {
     println!("\r");
 }
 
+// display all the keybinding to interact with the cli
 fn display_inputs_commands() {
     println!(
         "{} • {} • {} • {} • {} • {} • {} • {}\r",

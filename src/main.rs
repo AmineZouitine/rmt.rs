@@ -13,10 +13,13 @@ use colored::Colorize;
 const USAGE: &'static str = "
 
 Usage:
-    rmt [FILES]
-    rmt display 
+    rmt [FILES]  -> use to remove a file or a folder
+    rmt display  -> use to restore and delete an file or a folder
+    rmt info     -> use to have information about the trash
+    rmt flush    -> use to clear all the trash
 Options:
   --h     Show this screen.
+  -f      remove all warnings
 Exemple:
     rmt test.txt 
     rmt test.*
@@ -36,6 +39,10 @@ fn main() {
     }
     if args.contains(&String::from("--h")) {
         println!("{}", USAGE);
+        return;
+    }
+    if args.contains(&String::from("display")) {
+        input_manager::start_display(&connection, is_test);
         return;
     }
     if args.contains(&String::from("display")) {
