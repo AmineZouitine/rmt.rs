@@ -40,12 +40,14 @@ fn create_trash_directory(is_test: bool) {
 pub fn clear_structure(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
     if Path::new(&trash_path).is_dir() {
-        fs::remove_dir_all(&trash_path).expect(&format!("Unable to delete {}", trash_path));
+        fs::remove_dir_all(&trash_path)
+            .unwrap_or_else(|_| panic!("Unable to delete {}", trash_path));
     }
 
     let data_base_path = get_data_base_path(is_test);
     if Path::new(&data_base_path).is_dir() {
-        fs::remove_dir_all(&data_base_path).expect(&format!("Unable to delete {}", data_base_path));
+        fs::remove_dir_all(&data_base_path)
+            .unwrap_or_else(|_| panic!("Unable to delete {}", data_base_path));
     }
 }
 
@@ -102,7 +104,8 @@ fn get_data_base_file_name(is_test: bool) -> String {
 
 pub fn create_data_base_file(is_test: bool) -> Connection {
     let data_base_path = get_data_base_path(is_test);
-    Connection::open(&data_base_path).expect(&format!("Unable to create {} file", &data_base_path))
+    Connection::open(&data_base_path)
+        .unwrap_or_else(|_| panic!("Unable to create {} file", &data_base_path))
 }
 
 pub fn get_data_base_path(is_test: bool) -> String {
@@ -114,7 +117,7 @@ pub fn get_data_base_path(is_test: bool) -> String {
 }
 
 pub fn get_element_name(element_path_with_name: &str) -> String {
-    let mut elements: Vec<&str> = element_path_with_name.split("/").collect();
+    let mut elements: Vec<&str> = element_path_with_name.split('/').collect();
     elements.retain(|element| !element.is_empty());
     if elements.is_empty() {
         return "".to_string();
@@ -123,7 +126,7 @@ pub fn get_element_name(element_path_with_name: &str) -> String {
 }
 
 pub fn get_element_path(element_path_with_name: &str) -> String {
-    if element_path_with_name.matches("/").count() == 1 {
+    if element_path_with_name.matches('/').count() == 1 {
         return "/".to_string();
     }
 
