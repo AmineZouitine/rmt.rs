@@ -26,6 +26,7 @@ pub fn add_element_to_trash(
     element_name: &str,
     is_test: bool,
     is_verbose: bool,
+    is_destroy: bool,
 ) {
     let element_path = abspath(element_name).unwrap();
     let element_size = get_size(&element_path).expect("Unable to get element size");
@@ -50,6 +51,10 @@ pub fn add_element_to_trash(
         fs::rename(&element_path, &new_name).unwrap();
     }
 
+    if is_destroy {
+        return;
+    }
+    
     let trash_item = TrashItem::new(
         structure_manager::get_element_name(element_name),
         hash,
@@ -76,9 +81,10 @@ pub fn add_all_elements_to_trash(
     element_name: &[String],
     is_test: bool,
     is_verbose: bool,
+    is_destroy: bool,
 ) {
     for path in element_name {
-        add_element_to_trash(connection, config, path, is_test, is_verbose);
+        add_element_to_trash(connection, config, path, is_test, is_verbose, is_destroy);
     }
 }
 

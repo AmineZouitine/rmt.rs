@@ -17,9 +17,10 @@ Usage:
     rmt trash_info | rmt ti    -> use to have information about the trash
     rmt trash_flush | rmt tf   -> use to clear all the trash
 Options:
-  --h     Show this screen.
-  -f      remove all warnings
-  -v --verbose print deleted elements
+  -h --help     Show this screen.
+  -f            remove all warnings
+  -v            --verbose print deleted elements
+  -d            remove element without add it on the trash
 Exemple:
     rmt test.txt 
     rmt test.*
@@ -37,7 +38,7 @@ fn main() {
         );
         return;
     }
-    if args.contains(&String::from("--h")) {
+    if args.contains(&String::from("-h")) || args.contains(&String::from("--help")) {
         println!("{}", USAGE);
         return;
     }
@@ -46,6 +47,13 @@ fn main() {
         return;
     }
     if args.contains(&String::from("trash_flush")) || args.contains(&String::from("tf")) {
+        let mut user_input = String::new();
+        println!("Are you sure to flush all the elements of your trash ? [y/n]");
+        std::io::stdin().read_line(&mut user_input).unwrap();
+        user_input.pop();
+        if user_input != "y" && user_input != "yes" {
+            return;
+        }
         data_manager::delete_all_trash_item(&connection, is_test);
         return;
     }
@@ -54,10 +62,11 @@ fn main() {
         return;
     }
     let is_force = args.contains(&String::from("-f"));
+    let is_destroy = args.contains(&String::from("-d"));
     let is_verbose =
         args.contains(&String::from("-v")) || args.contains(&String::from("--verbose"));
 
-    args.retain(|arg| arg != "-f" && arg != "-v" && arg != "--verbose");
+    args.retain(|arg| arg != "-f" && arg != "-v" && arg != "--verbose" && arg != "-d");
 
     if args.len() > 2 && !is_force {
         let mut user_input = String::new();
@@ -69,5 +78,12 @@ fn main() {
         }
     }
 
-    trash_manager::add_all_elements_to_trash(&connection, &config, &args[1..], is_test, is_verbose);
+    trash_manager::add_all_elements_to_trash(
+        &connection,
+        &config,
+        &args[1..],
+        is_test,
+        is_verbose,
+        is_destroy,
+    );
 }
