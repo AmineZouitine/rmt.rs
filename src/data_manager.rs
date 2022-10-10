@@ -64,7 +64,8 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
         trash_items.push(item.unwrap());
     }
 
-    trash_items
+    // sort by adding date
+    trash_items.into_iter().rev().collect()
 }
 
 // Get a trash item by id, need to refacto because it's not the best way to do it

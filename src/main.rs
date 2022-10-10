@@ -14,9 +14,9 @@ const USAGE: &'static str = "
 
 Usage:
     rmt [FILES]  -> use to remove a file or a folder
-    rmt trash_display  -> use to restore and delete an file or a folder
-    rmt trash_info     -> use to have information about the trash
-    rmt trash_flush    -> use to clear all the trash
+    rmt trash_displair | rmt td  -> use to restore and delete an file or a folder
+    rmt trash_info | rmt ti    -> use to have information about the trash
+    rmt trash_flush | rmt tf   -> use to clear all the trash
 Options:
   --h     Show this screen.
   -f      remove all warnings
@@ -41,15 +41,15 @@ fn main() {
         println!("{}", USAGE);
         return;
     }
-    if args.contains(&String::from("trash_display")) {
+    if args.contains(&String::from("trash_display")) || args.contains(&String::from("td")) {
         input_manager::start_display(&connection, is_test);
         return;
     }
-    if args.contains(&String::from("trash_flush")) {
+    if args.contains(&String::from("trash_flush")) || args.contains(&String::from("tf")){
         data_manager::delete_all_trash_item(&connection, is_test);
         return;
     }
-    if args.contains(&String::from("trash_info")) {
+    if args.contains(&String::from("trash_info")) || args.contains(&String::from("ti")){
         trash_manager::display_trash_information(&connection, is_test);
         return;
     }
