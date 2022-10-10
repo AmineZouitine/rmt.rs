@@ -58,9 +58,7 @@ fn main() {
     let is_verbose =
         args.contains(&String::from("-v")) || args.contains(&String::from("--verbose"));
 
-    args.retain(|arg| {
-        arg != "-f" && arg != "-v" && arg != "--verbose"
-    });
+    args.retain(|arg| arg != "-f" && arg != "-v" && arg != "--verbose");
 
     if args.len() > 2 && !is_force {
         let mut user_input = String::new();
