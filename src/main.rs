@@ -20,6 +20,7 @@ Usage:
 Options:
   --h     Show this screen.
   -f      remove all warnings
+  -v --verbose print deleted elements
 Exemple:
     rmt test.txt 
     rmt test.*
@@ -45,18 +46,22 @@ fn main() {
         input_manager::start_display(&connection, is_test);
         return;
     }
-    if args.contains(&String::from("trash_flush")) || args.contains(&String::from("tf")){
+    if args.contains(&String::from("trash_flush")) || args.contains(&String::from("tf")) {
         data_manager::delete_all_trash_item(&connection, is_test);
         return;
     }
-    if args.contains(&String::from("trash_info")) || args.contains(&String::from("ti")){
+    if args.contains(&String::from("trash_info")) || args.contains(&String::from("ti")) {
         trash_manager::display_trash_information(&connection, is_test);
         return;
     }
     let is_force = args.contains(&String::from("-f"));
+    let is_verbose =
+        args.contains(&String::from("-v")) || args.contains(&String::from("--verbose"));
+
     args.retain(|arg| {
-        return arg != "-f";
+        return arg != "-f" && arg != "-v" && arg != "--verbose";
     });
+
     if args.len() - 1 >= 2 && !is_force {
         let mut user_input = String::new();
         println!("{} will be add to the trash, are you sure ? [y/n] (add {} option to get no more warnings)", (args.len() - 1).to_string().green().bold(), "-f".green().bold());
@@ -66,5 +71,6 @@ fn main() {
             return;
         }
     }
-    trash_manager::add_all_elements_to_trash(&connection, &config, &args[1..], true);
+
+    trash_manager::add_all_elements_to_trash(&connection, &config, &args[1..], is_test, is_verbose);
 }

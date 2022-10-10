@@ -25,6 +25,7 @@ pub fn add_element_to_trash(
     config: &Config,
     element_name: &str,
     is_test: bool,
+    is_verbose: bool,
 ) {
     let element_path = abspath(&element_name).unwrap();
     let element_size = get_size(&element_path).expect("Unable to get element size");
@@ -61,10 +62,12 @@ pub fn add_element_to_trash(
 
     data_manager::insert_trash_item(connection, &trash_item, is_test);
 
-    println!(
-        "{} has been added to the trash.",
-        element_name.green().bold()
-    );
+    if is_verbose {
+        println!(
+            "{} has been added to the trash.",
+            element_name.green().bold()
+        );
+    }
 }
 
 pub fn add_all_elements_to_trash(
@@ -72,9 +75,10 @@ pub fn add_all_elements_to_trash(
     config: &Config,
     element_name: &[String],
     is_test: bool,
+    is_verbose: bool,
 ) {
     for path in element_name {
-        add_element_to_trash(connection, config, path, is_test);
+        add_element_to_trash(connection, config, path, is_test, is_verbose);
     }
 }
 
@@ -220,7 +224,11 @@ pub fn display_trash_information(connection: &Connection, is_test: bool) {
         "{} elements are stored in the trash.",
         trash_items.len().to_string().green().bold()
     );
-    println!("{} {} is the total size of the trash.", (total_size / 1000).to_string().green().bold(), "ko".bold().white())
+    println!(
+        "{} {} is the total size of the trash.",
+        (total_size / 1000).to_string().green().bold(),
+        "ko".bold().white()
+    )
 }
 
 #[cfg(test)]
