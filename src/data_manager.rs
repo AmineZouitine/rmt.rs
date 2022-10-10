@@ -121,15 +121,12 @@ pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bo
         ));
 }
 
-
 pub fn delete_all_trash_item(connection: &Connection, is_test: bool) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
     connection
-        .execute(
-            &format!("DELETE FROM {}", table_name),
-            params![],
-        ).unwrap();
+        .execute(&format!("DELETE FROM {}", table_name), params![])
+        .unwrap();
 }
 
 #[cfg(test)]

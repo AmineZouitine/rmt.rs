@@ -50,7 +50,7 @@ fn main() {
         return;
     }
     if args.contains(&String::from("trash_info")) {
-        input_manager::start_display(&connection, is_test);
+        trash_manager::display_trash_information(&connection, is_test);
         return;
     }
     let is_force = args.contains(&String::from("-f"));

@@ -61,7 +61,10 @@ pub fn add_element_to_trash(
 
     data_manager::insert_trash_item(connection, &trash_item, is_test);
 
-    println!("{} has been added to the trash.", element_name.green().bold());
+    println!(
+        "{} has been added to the trash.",
+        element_name.green().bold()
+    );
 }
 
 pub fn add_all_elements_to_trash(
@@ -202,6 +205,23 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
     );
 }
 
+pub fn display_trash_information(connection: &Connection, is_test: bool) {
+    let trash_items = data_manager::find_all_trash_items(connection, is_test);
+    let total_size = if let Some(size) = trash_items
+        .iter()
+        .map(|trash_item| trash_item.real_size)
+        .reduce(|a, b| a + b)
+    {
+        size
+    } else {
+        0
+    };
+    println!(
+        "{} elements are stored in the trash.",
+        trash_items.len().to_string().green().bold()
+    );
+    println!("{} {} is the total size of the trash.", (total_size / 1000).to_string().green().bold(), "ko".bold().white())
+}
 
 #[cfg(test)]
 mod tests {}
