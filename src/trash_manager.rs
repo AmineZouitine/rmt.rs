@@ -27,7 +27,7 @@ pub fn add_element_to_trash(
     is_test: bool,
     is_verbose: bool,
 ) {
-    let element_path = abspath(&element_name).unwrap();
+    let element_path = abspath(element_name).unwrap();
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
@@ -200,7 +200,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         "{} has been restored ! :D\r",
         trash_item.name.green().bold()
     );
-    if new_path.len() > 0 && new_path.as_bytes()[new_path.len() - 1] as char == '/' {
+    if !new_path.is_empty() && new_path.as_bytes()[new_path.len() - 1] as char == '/' {
         new_path.pop();
     }
     println!(

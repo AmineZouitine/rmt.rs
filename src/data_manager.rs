@@ -24,16 +24,15 @@ pub fn setup_data_base(is_test: bool) -> Connection {
             ),
             [],
         )
-        .expect(&format!(
-            "Unable to execute creation of {} table",
-            table_name
-        ));
+        .unwrap_or_else(|_| panic!("Unable to execute creation of {} table", table_name));
 
     connection
 }
 
 fn get<T: FromSql>(row: &Row, index: usize) -> T {
-    let element: T = row.get(index).expect(&format!("Get a {} not valid", index));
+    let element: T = row
+        .get(index)
+        .unwrap_or_else(|_| panic!("Get a {} not valid", index));
     element
 }
 
@@ -102,10 +101,8 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
                 trash_item.is_folder
             ],
         )
-        .expect(&format!(
-            "Unable to do insert element request with this values : {:?}",
-            trash_item
-        ));
+        .unwrap_or_else(|_| panic!("Unable to do insert element request with this values : {:?}",
+            trash_item));
 }
 
 pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bool) {
@@ -116,10 +113,12 @@ pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bo
             &format!("DELETE FROM {} WHERE id = (?1)", table_name),
             params![trash_item_id],
         )
-        .expect(&format!(
-            "Unable to do delete element request with this id : {}",
-            trash_item_id
-        ));
+        .unwrap_or_else(|_| {
+            panic!(
+                "Unable to do delete element request with this id : {}",
+                trash_item_id
+            )
+        });
 }
 
 pub fn delete_all_trash_item(connection: &Connection, is_test: bool) {
