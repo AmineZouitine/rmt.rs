@@ -13,7 +13,7 @@ pub fn config_setup(config_path: &str) -> Config {
 
     // if the config files doesn't exist
     if !Path::new(config_path).is_file() {
-        write_default_config_file(&config_path, &default_config_content);
+        write_default_config_file(config_path, &default_config_content);
     } else {
         // get the current content of the config file
         let config_content = fs::read_to_string(&config_path).expect("Unable to read config file");
@@ -21,7 +21,7 @@ pub fn config_setup(config_path: &str) -> Config {
         // try to convert it to Config structure
         current_config = serde_yaml::from_str(&config_content).unwrap_or_else(|_| {
             // if the current config file, is not correct (bad format, bad values etc...), replace the content by the default config
-            write_default_config_file(&config_path, &default_config_content);
+            write_default_config_file(config_path, &default_config_content);
             current_config
         });
     }
