@@ -15,7 +15,6 @@ pub struct DisplayInfos {
     pub selected_trash_items: SelectedTrashItems,
 }
 
-
 impl DisplayInfos {
     pub fn new(total_elements: usize) -> Self {
         Self {
@@ -111,7 +110,6 @@ pub fn display_trash(
 
     current_selected_id
 }
-
 
 // Use to display dot, to indicate the current page and the total numbers of pages
 fn display_pages_marks(display_infos: &DisplayInfos) {

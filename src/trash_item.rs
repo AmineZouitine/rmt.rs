@@ -37,8 +37,7 @@ impl TrashItem {
 
 impl fmt::Display for TrashItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
-        let emoji = if self.is_folder { "📁" } else {"📄"};
+        let emoji = if self.is_folder { "📁" } else { "📄" };
 
         write!(
             f,

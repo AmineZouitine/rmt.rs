@@ -2,7 +2,6 @@ use crate::structure_manager;
 use crate::trash_item::TrashItem;
 use rusqlite::{params, types::FromSql, Connection, Row};
 
-
 // Create the database and the table to save information about deleted elements.
 pub fn setup_data_base(is_test: bool) -> Connection {
     let connection = structure_manager::create_data_base_file(is_test);
@@ -68,7 +67,6 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
     trash_items
 }
 
-
 // Get a trash item by id, need to refacto because it's not the best way to do it
 pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) -> TrashItem {
     find_all_trash_items(connection, is_test)
@@ -76,7 +74,6 @@ pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) -> 
         .find(|trash_item| trash_item.id == id)
         .unwrap()
 }
-
 
 pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
@@ -87,7 +84,6 @@ pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) {
         )
         .unwrap();
 }
-
 
 pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_test: bool) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
