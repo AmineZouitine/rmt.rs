@@ -28,7 +28,7 @@ Exemple:
 fn main() {
     let is_test = true;
     let (config, connection) = structure_manager::setup_structure(is_test);
-    let args: Vec<String> = env::args().collect();
+    let mut args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         println!(
             "{}\nYou should use {}",
@@ -46,18 +46,23 @@ fn main() {
         return;
     }
     if args.contains(&String::from("trash_flush")) {
-        input_manager::start_display(&connection, is_test);
+        data_manager::delete_all_trash_item(&connection, is_test);
         return;
     }
     if args.contains(&String::from("trash_info")) {
         input_manager::start_display(&connection, is_test);
         return;
     }
-    if args.len() >= 2 {
+    let is_force = args.contains(&String::from("-f"));
+    args.retain(|arg| {
+        return arg != "-f";
+    });
+    if args.len() - 1 >= 2 && !is_force {
         let mut user_input = String::new();
-        println!("{} will be add to the trash, are you sure ? [y/n] (add {} option to get no more warnings", args.len().to_string().green().bold(), "-f".green().bold());
+        println!("{} will be add to the trash, are you sure ? [y/n] (add {} option to get no more warnings)", (args.len() - 1).to_string().green().bold(), "-f".green().bold());
         std::io::stdin().read_line(&mut user_input).unwrap();
-        if user_input != "y" || user_input != "yes" {
+        user_input.pop();
+        if user_input != "y" && user_input != "yes" {
             return;
         }
     }

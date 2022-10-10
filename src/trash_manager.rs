@@ -60,6 +60,8 @@ pub fn add_element_to_trash(
     );
 
     data_manager::insert_trash_item(connection, &trash_item, is_test);
+
+    println!("{} has been added to the trash.", element_name.green().bold());
 }
 
 pub fn add_all_elements_to_trash(
@@ -199,6 +201,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         format!("{}/{}", &new_path, &trash_item.name).green().bold()
     );
 }
+
 
 #[cfg(test)]
 mod tests {}
