@@ -11,6 +11,52 @@
 
 ⚡️ Quick start
 
+Download the binary depending on your configuration here: https://github.com/AmineZouitine/Cpad/releases
 
+Then you just need to enter this command in your terminal:
+```sh
+tar -xf <downloaded_archive> cpad && sudo mv cpad /usr/local/bin
+````
+#### 😎 Pro tip (optional)
+
+Add **rmt** as an **alias** instead of the **rm** command.
+
+
+## Features
+
+### 🚮Delete an element (but it is saved in the trash don't worry)
+
+```sh
+rmt [OPTIONS] [FILES|FOLDER]
+
+Exemples: 
+rmt text.txt
+rmt *
+rmt folder test.txt *.sh
+```
+✨ I like to use **-f** option, to remove all the warnings.
+
+### 📺 Launch CLI to restore or flush elements
+
+```sh
+rmt trash_display
+or
+rmt td
+```
+
+### ❌ Flush all element from the trash
+```sh
+rmt trash_flush
+or
+rmt tf
+```
+
+### 🔎 Informations about the trash
+
+```sh
+rmt trash_info
+or
+rmt ti
+```
 
 🫵🏼 Contribution
