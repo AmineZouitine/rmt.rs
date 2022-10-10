@@ -24,7 +24,7 @@ Add **rmt** as an **alias** instead of the **rm** command.
 
 ## Features
 
-### 🚮Delete an element (but it is saved in the trash don't worry)
+### 🚮 Delete an element (but it is saved in the trash don't worry)
 
 ```sh
 rmt [OPTIONS] [FILES|FOLDER]
@@ -60,3 +60,5 @@ rmt ti
 ```
 
 🫵🏼 Contribution
+
+You can find all the information in the file **CONTRIBUTING.md**. Hoping to see you soon in my pull request 😊
