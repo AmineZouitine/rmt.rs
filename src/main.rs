@@ -11,7 +11,6 @@ use std::env;
 use colored::Colorize;
 
 const USAGE: &str = "
-
 Usage:
     rmt [FILES]  -> use to remove a file or a folder
     rmt trash_displair | rmt td  -> use to restore and delete an file or a folder
