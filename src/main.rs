@@ -10,7 +10,7 @@ use std::env;
 
 use colored::Colorize;
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 
 Usage:
     rmt [FILES]  -> use to remove a file or a folder
@@ -59,10 +59,10 @@ fn main() {
         args.contains(&String::from("-v")) || args.contains(&String::from("--verbose"));
 
     args.retain(|arg| {
-        return arg != "-f" && arg != "-v" && arg != "--verbose";
+        arg != "-f" && arg != "-v" && arg != "--verbose"
     });
 
-    if args.len() - 1 >= 2 && !is_force {
+    if args.len() > 2 && !is_force {
         let mut user_input = String::new();
         println!("{} will be add to the trash, are you sure ? [y/n] (add {} option to get no more warnings)", (args.len() - 1).to_string().green().bold(), "-f".green().bold());
         std::io::stdin().read_line(&mut user_input).unwrap();

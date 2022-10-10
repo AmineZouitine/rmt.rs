@@ -216,8 +216,9 @@ mod tests {
         structure_manager::clear_structure(is_test);
         assert_eq!(trash_items.len(), 2);
 
-        trash_item1.id = trash_items[0].id;
-        trash_item2.id = trash_items[1].id;
+        trash_item1.id = trash_items[1].id;
+        trash_item2.id = trash_items[0].id;
+
 
         assert!(trash_items.contains(&trash_item1));
         assert!(trash_items.contains(&trash_item2));
