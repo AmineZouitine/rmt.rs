@@ -59,6 +59,6 @@ or
 rmt ti
 ```
 
-🫵🏼 Contribution
+## 🫵 Contribution
 
 You can find all the information in the file **CONTRIBUTING.md**. Hoping to see you soon in my pull request 😊
