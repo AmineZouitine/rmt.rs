@@ -15,7 +15,7 @@ Download the binary depending on your configuration here: https://github.com/Ami
 
 Then you just need to enter this command in your terminal:
 ```sh
-tar -xf <downloaded_archive> cpad && sudo mv cpad /usr/local/bin
+tar -xf <downloaded_archive> rmt && sudo mv rmt /usr/local/bin
 ````
 
 ## Features
