@@ -134,7 +134,7 @@ fn set_page(display_infos: &mut DisplayInfos, next: bool) {
     }
 }
 
-fn toggle_item(selected_elements: i8, storage: &mut Vec<i8>, linked_storage: &mut Vec<i8>) {
+fn toggle_item(selected_elements: i32, storage: &mut Vec<i32>, linked_storage: &mut Vec<i32>) {
     if storage.contains(&selected_elements) {
         let index = storage
             .iter()

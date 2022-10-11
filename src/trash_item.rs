@@ -2,7 +2,7 @@ use std::fmt;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct TrashItem {
-    pub id: i8,
+    pub id: i32,
     pub name: String,
     pub hash: String,
     pub path: String,
