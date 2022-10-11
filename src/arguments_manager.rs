@@ -13,15 +13,24 @@ pub struct ArgumentsManager {
 
 impl ArgumentsManager {
     pub fn new(arguments: &[String]) -> Self {
+        let is_rf =
+            arguments.contains(&String::from("-rf")) || arguments.contains(&String::from("-fr"));
+        let is_df =
+            arguments.contains(&String::from("-df")) || arguments.contains(&String::from("-fd"));
+
         Self {
             is_force: arguments.contains(&String::from("-f"))
-                || arguments.contains(&String::from("--force")),
+                || arguments.contains(&String::from("--force"))
+                || is_rf
+                || is_df,
             confirmation: Confirmation::new(arguments),
             is_recursive: arguments.contains(&String::from("-r"))
                 || arguments.contains(&String::from("--recursive"))
-                || arguments.contains(&String::from("-R")),
+                || arguments.contains(&String::from("-R"))
+                || is_rf,
             is_empty_dir: arguments.contains(&String::from("-d"))
-                || arguments.contains(&String::from("--dir")),
+                || arguments.contains(&String::from("--dir"))
+                || is_df,
             is_verbose: arguments.contains(&String::from("-v"))
                 || arguments.contains(&String::from("--verbose")),
             is_help: arguments.contains(&String::from("--h"))
@@ -36,15 +45,12 @@ impl ArgumentsManager {
         }
     }
 
-    pub fn filter_args(arguments: &mut [String]) {
-        arguments.to_vec().retain(|arg| {
+    pub fn filter_args(arguments: &mut Vec<String>) {
+        arguments.retain(|arg| {
             arg != "-f"
                 && arg != "--force"
                 && arg != "-i"
-                && arg != "--interactive[always]"
                 && arg != "-I"
-                && arg != "interactive[once]"
-                && arg != "interactive[never]"
                 && arg != "-r"
                 && arg != "--recursive"
                 && arg != "-R"
@@ -61,6 +67,10 @@ impl ArgumentsManager {
                 && arg != "trash_flush"
                 && arg != "tf"
                 && arg != "--destroy"
+                && arg != "-rf"
+                && arg != "-fr"
+                && arg != "-df"
+                && arg != "-fd"
         });
     }
 }
@@ -73,13 +83,9 @@ pub enum Confirmation {
 
 impl Confirmation {
     pub fn new(arguments: &[String]) -> Self {
-        if arguments.contains(&String::from("-i"))
-            || arguments.contains(&String::from("--interactive[always]"))
-        {
+        if arguments.contains(&String::from("-i")) {
             return Self::Always;
-        } else if arguments.contains(&String::from("-I"))
-            || arguments.contains(&String::from("interactive[once]"))
-        {
+        } else if arguments.contains(&String::from("-I")) {
             return Self::Once;
         }
         Self::Never

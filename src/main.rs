@@ -36,10 +36,6 @@ OPTIONS
               removing  recursively;  less intrusive than -i, while still
               giving protection against most mistakes
 
-       --interactive[=WHEN]
-              prompt according to WHEN: never, once (-I), or always (-i);
-              without WHEN, prompt always
-
        -r, -R, --recursive
               remove directories and their contents recursively
 
@@ -57,7 +53,7 @@ OPTIONS
 ";
 
 fn main() {
-    let is_test = true;
+    let is_test = false;
     let (config, connection) = structure_manager::setup_structure(is_test);
     let mut args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -78,7 +74,11 @@ fn main() {
         input_manager::start_display(&connection, is_test);
     } else if arguments_manager.is_trash_flush {
         let mut user_input = String::new();
-        println!("Are you sure to flush all the elements of your trash ? [y/n]");
+        println!(
+            "Are you sure to {} all the elements of your trash ? {}",
+            "flush".green().bold(),
+            "[y/n]".green().bold()
+        );
         std::io::stdin().read_line(&mut user_input).unwrap();
         user_input.pop();
         if user_input == "y" || user_input == "yes" {

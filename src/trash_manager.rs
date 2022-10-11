@@ -30,11 +30,21 @@ pub fn add_element_to_trash(
 ) {
     let element_path = match abspath(element_name) {
         Some(path) => {
-            if Path::new(&path).is_dir() && !arguments_manager.is_empty_dir
-                || !arguments_manager.is_recursive
-            {
-                println!("Cannot delete a the folder {} without the {} option or {} (for an empty folder)", element_name.green().bold(), "-r".bold().green(), "-d".bold().green());
-                return;
+            if Path::new(&path).is_dir() {
+                let element_in_dir = fs::read_dir(&path).unwrap().count();
+                if (element_in_dir == 0
+                    && !arguments_manager.is_empty_dir
+                    && !arguments_manager.is_recursive)
+                    || (element_in_dir > 0 && !arguments_manager.is_recursive)
+                {
+                    println!(
+                    "Cannot delete the folder {} without the {} option or {} (for an empty folder)",
+                    element_name.green().bold(),
+                    "-r".bold().green(),
+                    "-d".bold().green()
+                );
+                    return;
+                }
             }
             path
         }
@@ -66,13 +76,14 @@ pub fn add_element_to_trash(
     let compression_size: Option<u64> = None;
 
     let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
-    let element_is_directory = Path::new(&new_name).is_dir();
 
     if config.compression {
         // TODO
     } else {
         fs::rename(&element_path, &new_name).unwrap();
     }
+
+    let element_is_directory = Path::new(&new_name).is_dir();
 
     let trash_item = TrashItem::new(
         structure_manager::get_element_name(element_name),
