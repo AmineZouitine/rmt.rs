@@ -27,7 +27,7 @@ Add **rmt** as an **alias** instead of the **rm** command.
 ### 🚮 Delete an element (but it is saved in the trash don't worry)
 
 ```sh
-rmt [OPTIONS] [FILES|FOLDER]
+rmt [OPTION]... [FILE|FOLDER]...
 
 Exemples: 
 rmt text.txt
