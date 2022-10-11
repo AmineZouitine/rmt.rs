@@ -77,4 +77,4 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
-            path: ./rmt-${{ matrix.target }}.tar.gz
+            path: ${{ github.workspace }}/build/rmt-${{ matrix.target }}.tar.gz
