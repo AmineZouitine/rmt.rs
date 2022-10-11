@@ -1,6 +1,13 @@
 [package]
 name = "rmt"
 version = "0.1.0"
+authors = ["Amine Zouitine"]
+description = """
+remove files or directories and save them in trash.
+"""
+documentation = "https://github.com/AmineZouitine/rmt.rs"
+homepage = "https://github.com/AmineZouitine/rmt.rs"
+repository = "https://github.com/AmineZouitine/rmt.rs"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
