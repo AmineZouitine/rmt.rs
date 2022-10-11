@@ -28,16 +28,16 @@ impl DisplayInfos {
                 content: String::new(),
             },
             selected_trash_items: SelectedTrashItems {
-                restore: Vec::<i8>::new(),
-                delete: Vec::<i8>::new(),
+                restore: Vec::<i32>::new(),
+                delete: Vec::<i32>::new(),
             },
         }
     }
 }
 
 pub struct SelectedTrashItems {
-    pub restore: Vec<i8>, // store the id of the trash item
-    pub delete: Vec<i8>,  // store the id of the trash item
+    pub restore: Vec<i32>, // store the id of the trash item
+    pub delete: Vec<i32>,  // store the id of the trash item
 }
 
 pub struct Filter {
@@ -58,7 +58,7 @@ pub fn display_trash(
     connection: &Connection,
     is_test: bool,
     display_infos: &mut DisplayInfos,
-) -> i8 {
+) -> i32 {
     println!("Which elements do you want to restore ?\n\r");
 
     let mut trash_items = data_manager::find_all_trash_items(connection, is_test);

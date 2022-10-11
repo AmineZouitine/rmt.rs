@@ -11,6 +11,7 @@
 
 ![PG0c5IFyWI](https://user-images.githubusercontent.com/53370597/195192037-c5c557b2-e8bb-42c7-beb6-9dbf03f9ff71.gif)
 
+## ‼️ Rmt.rs is not stable yet, do not use it for critical usages for the moment
 
 ## 👨🏽‍💻 Installation
 

@@ -68,14 +68,14 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
 }
 
 // Get a trash item by id, need to refacto because it's not the best way to do it
-pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) -> TrashItem {
+pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i32) -> TrashItem {
     find_all_trash_items(connection, is_test)
         .into_iter()
         .find(|trash_item| trash_item.id == id)
         .unwrap()
 }
 
-pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i8) {
+pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i32) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
     connection
         .execute(
@@ -105,7 +105,7 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
             trash_item));
 }
 
-pub fn delete_trash_item(connection: &Connection, trash_item_id: i8, is_test: bool) {
+pub fn delete_trash_item(connection: &Connection, trash_item_id: i32, is_test: bool) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
     connection
