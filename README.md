@@ -12,7 +12,7 @@
 
 ### ⚡️ Quick start
 
-Download the binary depending on your configuration here: https://github.com/AmineZouitine/rmt.rs/realeases
+Download the binary depending on your configuration here: https://github.com/AmineZouitine/rmt.rs/releases
 
 Then you just need to enter this command in your terminal:
 ```sh
