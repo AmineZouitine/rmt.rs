@@ -1,3 +1,4 @@
+pub mod arguments_manager;
 pub mod config;
 pub mod config_manager;
 pub mod data_manager;
@@ -6,24 +7,53 @@ pub mod input_manager;
 pub mod structure_manager;
 pub mod trash_item;
 pub mod trash_manager;
+use arguments_manager::ArgumentsManager;
+use colored::Colorize;
 use std::env;
 
-use colored::Colorize;
-
 const USAGE: &str = "
-Usage:
-    rmt [FILES]  -> use to remove a file or a folder
-    rmt trash_displair | rmt td  -> use to restore and delete an file or a folder
-    rmt trash_info | rmt ti    -> use to have information about the trash
-    rmt trash_flush | rmt tf   -> use to clear all the trash
-Options:
-  -h --help     Show this screen.
-  -f            remove all warnings
-  -v            --verbose print deleted elements
-  -d            remove element without add it on the trash
-Exemple:
-    rmt test.txt 
-    rmt test.*
+NAME
+       rmt - remove files or directories and save it
+
+SYNOPSIS
+       rmt [OPTION]... [FILE]...   -> Use to remove an element and save it
+       rmt trash_display   -> Use to open trash CLI to restore or delete elements in the trash
+       rmt trash_info    -> Use print some informations about the trash
+       rmt trash_flush    -> Use to delete every element in the trash
+
+SHORTCUTS
+       rmt trash_display ->   rmt td
+       rmt trash_info    ->   rmt ti
+       rmt trash_flush   ->   rmt tf
+OPTIONS
+
+       -f, --force
+              ignore nonexistent files and arguments, never prompt
+
+       -i     prompt before every removal
+
+       -I     prompt once before removing more than three files, or  when
+              removing  recursively;  less intrusive than -i, while still
+              giving protection against most mistakes
+
+       --interactive[=WHEN]
+              prompt according to WHEN: never, once (-I), or always (-i);
+              without WHEN, prompt always
+
+       -r, -R, --recursive
+              remove directories and their contents recursively
+
+       -d, --dir
+              remove empty directories
+
+       -v, --verbose
+              explain what is being done
+
+       --help display this help and exit
+
+       By default, rm does not remove directories.  Use  the  --recursive
+       (-r or -R) option to remove each listed directory, too, along with
+       all of its contents.
 ";
 
 fn main() {
@@ -38,52 +68,31 @@ fn main() {
         );
         return;
     }
-    if args.contains(&String::from("-h")) || args.contains(&String::from("--help")) {
+
+    let arguments_manager = ArgumentsManager::new(&args);
+    ArgumentsManager::filter_args(&mut args);
+
+    if arguments_manager.is_help {
         println!("{}", USAGE);
-        return;
-    }
-    if args.contains(&String::from("trash_display")) || args.contains(&String::from("td")) {
+    } else if arguments_manager.is_trash_display {
         input_manager::start_display(&connection, is_test);
-        return;
-    }
-    if args.contains(&String::from("trash_flush")) || args.contains(&String::from("tf")) {
+    } else if arguments_manager.is_trash_flush {
         let mut user_input = String::new();
         println!("Are you sure to flush all the elements of your trash ? [y/n]");
         std::io::stdin().read_line(&mut user_input).unwrap();
         user_input.pop();
-        if user_input != "y" && user_input != "yes" {
-            return;
+        if user_input == "y" || user_input == "yes" {
+            data_manager::delete_all_trash_item(&connection, is_test);
         }
-        data_manager::delete_all_trash_item(&connection, is_test);
-        return;
-    }
-    if args.contains(&String::from("trash_info")) || args.contains(&String::from("ti")) {
+    } else if arguments_manager.is_trash_info {
         trash_manager::display_trash_information(&connection, is_test);
-        return;
+    } else {
+        trash_manager::add_all_elements_to_trash(
+            &connection,
+            &config,
+            &args[1..],
+            is_test,
+            &arguments_manager,
+        );
     }
-    let is_force = args.contains(&String::from("-f"));
-    let is_destroy = args.contains(&String::from("-d"));
-    let is_verbose =
-        args.contains(&String::from("-v")) || args.contains(&String::from("--verbose"));
-
-    args.retain(|arg| arg != "-f" && arg != "-v" && arg != "--verbose" && arg != "-d");
-
-    if args.len() > 2 && !is_force {
-        let mut user_input = String::new();
-        println!("{} will be add to the trash, are you sure ? [y/n] (add {} option to get no more warnings)", (args.len() - 1).to_string().green().bold(), "-f".green().bold());
-        std::io::stdin().read_line(&mut user_input).unwrap();
-        user_input.pop();
-        if user_input != "y" && user_input != "yes" {
-            return;
-        }
-    }
-
-    trash_manager::add_all_elements_to_trash(
-        &connection,
-        &config,
-        &args[1..],
-        is_test,
-        is_verbose,
-        is_destroy,
-    );
 }

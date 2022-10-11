@@ -1,3 +1,4 @@
+use crate::arguments_manager::{ArgumentsManager, Confirmation};
 use crate::structure_manager::{self, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
@@ -25,10 +26,31 @@ pub fn add_element_to_trash(
     config: &Config,
     element_name: &str,
     is_test: bool,
-    is_verbose: bool,
-    is_destroy: bool,
+    arguments_manager: &ArgumentsManager,
 ) {
-    let element_path = abspath(element_name).unwrap();
+    let element_path = match abspath(element_name) {
+        Some(path) => {
+            if Path::new(&path).is_dir() && !arguments_manager.is_empty_dir
+                || !arguments_manager.is_recursive
+            {
+                println!("Cannot delete a the folder {} without the {} option or {} (for an empty folder)", element_name.green().bold(), "-r".bold().green(), "-d".bold().green());
+                return;
+            }
+            path
+        }
+        None => {
+            if arguments_manager.is_force {
+                return;
+            }
+            println!(
+                "Unable to delete {}: No such file or folder (use {} to remove warnings)",
+                element_name.green().bold(),
+                "-f".green().bold()
+            );
+            return;
+        }
+    };
+
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
@@ -44,6 +66,7 @@ pub fn add_element_to_trash(
     let compression_size: Option<u64> = None;
 
     let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
+    let element_is_directory = Path::new(&new_name).is_dir();
 
     if config.compression {
         // TODO
@@ -51,10 +74,6 @@ pub fn add_element_to_trash(
         fs::rename(&element_path, &new_name).unwrap();
     }
 
-    if is_destroy {
-        return;
-    }
-    
     let trash_item = TrashItem::new(
         structure_manager::get_element_name(element_name),
         hash,
@@ -62,14 +81,21 @@ pub fn add_element_to_trash(
         date.to_string(),
         element_size,
         compression_size,
-        Path::new(&new_name).is_dir(),
+        element_is_directory,
     );
 
-    data_manager::insert_trash_item(connection, &trash_item, is_test);
+    if !arguments_manager.is_destroy {
+        data_manager::insert_trash_item(connection, &trash_item, is_test);
+    }
 
-    if is_verbose {
+    if arguments_manager.is_verbose {
         println!(
-            "{} has been added to the trash.",
+            "this {} {} has been added to the trash.",
+            if element_is_directory {
+                "directory".bold().white()
+            } else {
+                "file".bold().white()
+            },
             element_name.green().bold()
         );
     }
@@ -80,11 +106,41 @@ pub fn add_all_elements_to_trash(
     config: &Config,
     element_name: &[String],
     is_test: bool,
-    is_verbose: bool,
-    is_destroy: bool,
+    arguments_manager: &ArgumentsManager,
 ) {
     for path in element_name {
-        add_element_to_trash(connection, config, path, is_test, is_verbose, is_destroy);
+        let mut user_input = String::new();
+        match arguments_manager.confirmation {
+            Confirmation::Always => {
+                println!(
+                    "Are you sure to delete {} ? {}",
+                    path.bold().green(),
+                    "[y/n]".green().bold()
+                );
+                std::io::stdin().read_line(&mut user_input).unwrap();
+                user_input.pop();
+                if user_input == "y" || user_input == "yes" {
+                    add_element_to_trash(connection, config, path, is_test, arguments_manager);
+                }
+            }
+            Confirmation::Once => {
+                if element_name.len() > 3 {
+                    println!(
+                        "Sure you want to delete all {} files ? {}",
+                        element_name.len().to_string().bold().green(),
+                        "[y/n]".green().bold()
+                    );
+                    std::io::stdin().read_line(&mut user_input).unwrap();
+                    user_input.pop();
+                    if user_input == "y" || user_input == "yes" {
+                        add_element_to_trash(connection, config, path, is_test, arguments_manager);
+                    }
+                } else {
+                    add_element_to_trash(connection, config, path, is_test, arguments_manager);
+                }
+            }
+            _ => add_element_to_trash(connection, config, path, is_test, arguments_manager),
+        }
     }
 }
 
