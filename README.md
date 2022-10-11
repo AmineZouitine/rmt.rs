@@ -1,5 +1,11 @@
 # 🗑️ Rmt.rs
 
+<p align="center">
+    <img width="200" src="https://user-images.githubusercontent.com/53370597/195205359-21b93716-f78d-4200-9102-ce6145750303.png">
+</p>
+<p align="center"> <b>Fun fact</b>: <a href="https://stability.ai/blog/stable-diffusion-public-release">Stable diffusion</a> generated this logo 🎨</p>
+
+
 **Rmt** is similar to the **rm** command, but it allows me to **save the deleted elements in the trash**. If you wish, you can restore the previously deleted elements of your choice (or delete them forever) with a **cli**.
 
 
