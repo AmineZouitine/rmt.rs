@@ -9,7 +9,7 @@
 
 
 
-⚡️ Quick start
+### ⚡️ Quick start
 
 Download the binary depending on your configuration here: https://github.com/AmineZouitine/rmt.rs/realeases
 
@@ -18,6 +18,9 @@ Then you just need to enter this command in your terminal:
 tar -xf <downloaded_archive> rmt && sudo mv rmt /usr/local/bin
 ````
 
+### 😎 Pro tip (optional)
+
+Add **rmt** as an **alias** instead of the **rm** command.
 ## Features
 
 ### 🚮 Delete an element (but it is saved in the trash don't worry)
