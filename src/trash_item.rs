@@ -41,8 +41,8 @@ impl fmt::Display for TrashItem {
 
         write!(
             f,
-            " {} date: {}  name: {}  inital_path: {} size: {}",
-            emoji, self.date, self.name, self.path, self.real_size,
+            " {} date: {}  name: {}  inital_path: {}",
+            emoji, self.date, self.name, self.path,
         )
     }
 }
