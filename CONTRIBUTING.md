@@ -17,4 +17,13 @@ We are testing on the same database so we should run a test on a single thread.
 ```sh
 cargo test -- --test-threads=1
 ```
+rmt is not yet stable, to avoid any problem, I advise you to test using the Dockerfile
+
+```sh
+docker build -t "Image_name" .
+docker run -d Image_name 
+>> id
+docker exec -it id sh
+```
+
 
