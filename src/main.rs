@@ -11,20 +11,31 @@ use arguments_manager::ArgumentsManager;
 use colored::Colorize;
 use std::env;
 
-const USAGE: &str = "
-NAME
-       rmt - remove files or directories and save it
+
+fn main() {
+    let pkg_name = env!("CARGO_PKG_NAME");
+    let pkg_description = env!("CARGO_PKG_DESCRIPTION");
+    let author = env!("CARGO_PKG_AUTHORS");
+    let version = env!("CARGO_PKG_VERSION");
+    let homepage = env!("CARGO_PKG_HOMEPAGE");
+
+    let usage = format!(r###"
+{pkg_name}: {pkg_description}
+
+author: {author}
+version: {version}
+home page: {homepage}
 
 SYNOPSIS
-       rmt [OPTION]... [FILE]...   -> Use to remove an element and save it
-       rmt trash_display   -> Use to open trash CLI to restore or delete elements in the trash
-       rmt trash_info    -> Use print some informations about the trash
-       rmt trash_flush    -> Use to delete every element in the trash
+       {pkg_name} [OPTION]... [FILE]...   -> Use to remove an element and save it
+       {pkg_name} trash_display   -> Use to open trash CLI to restore or delete elements in the trash
+       {pkg_name} trash_info    -> Use print some informations about the trash
+       {pkg_name} trash_flush    -> Use to delete every element in the trash
 
 SHORTCUTS
-       rmt trash_display ->   rmt td
-       rmt trash_info    ->   rmt ti
-       rmt trash_flush   ->   rmt tf
+       {pkg_name} trash_display ->   {pkg_name} td
+       {pkg_name} trash_info    ->   {pkg_name} ti
+       {pkg_name} trash_flush   ->   {pkg_name} tf
 OPTIONS
 
        -f, --force
@@ -50,9 +61,8 @@ OPTIONS
        By default, rm does not remove directories.  Use  the  --recursive
        (-r or -R) option to remove each listed directory, too, along with
        all of its contents.
-";
+"###);
 
-fn main() {
     let is_test = false;
     let (config, connection) = structure_manager::setup_structure(is_test);
     let mut args: Vec<String> = env::args().collect();
@@ -69,7 +79,7 @@ fn main() {
     ArgumentsManager::filter_args(&mut args);
 
     if arguments_manager.is_help {
-        println!("{}", USAGE);
+        println!("{}", usage);
     } else if arguments_manager.is_trash_display {
         input_manager::start_display(&connection, is_test);
     } else if arguments_manager.is_trash_flush {

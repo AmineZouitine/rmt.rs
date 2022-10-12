@@ -1,9 +1,7 @@
 [package]
 name = "rmt"
 authors = ["Amine Zouitine"]
-description = """
-remove files or directories and save them in trash.
-"""
+description = "remove files or directories and save them in trash."
 documentation = "https://github.com/AmineZouitine/rmt.rs"
 homepage = "https://github.com/AmineZouitine/rmt.rs"
 repository = "https://github.com/AmineZouitine/rmt.rs"
