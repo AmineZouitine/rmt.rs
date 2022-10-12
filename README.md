@@ -8,8 +8,7 @@
 
 **Rmt** is similar to the **rm** command, but it allows me to **save the deleted elements in the trash**. If you wish, you can restore the previously deleted elements of your choice (or delete them forever) with a **cli**.
 
-
-![PG0c5IFyWI](https://user-images.githubusercontent.com/53370597/195192037-c5c557b2-e8bb-42c7-beb6-9dbf03f9ff71.gif)
+![UmzJ1r8Z7D](https://user-images.githubusercontent.com/53370597/195318131-e1b3ad8b-4022-41c7-a226-3b9a28a1ee94.gif)
 
 ## ‼️ Rmt.rs is not stable yet, do not use it for critical usages for the moment
 
