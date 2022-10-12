@@ -16,11 +16,15 @@ fn main() {
     let (config, connection) = structure_manager::setup_structure(is_test);
     let arguments_manager = ArgumentsManager::parse();
 
-    if arguments_manager.elements.is_empty() {
+    if arguments_manager.elements.is_empty()
+        && !arguments_manager.is_trash_flush
+        && !arguments_manager.is_trash_display
+        && !arguments_manager.is_trash_info
+    {
         println!(
             "{}\nYou should use {}",
             "The arguments are not valid.".red().bold(),
-            "rmt --h".green().bold()
+            "rmt --help".green().bold()
         );
         return;
     }
