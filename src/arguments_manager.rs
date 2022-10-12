@@ -15,10 +15,11 @@ pub struct ArgumentsManager {
 
     /// prompt before every removal
     #[arg(short = 'i')]
-    pub confirmation_once: bool,
+    pub confirmation_always: bool,
+
     ///  prompt once before removing more than three files, or  when removing  recursively;
     #[arg(short = 'I')]
-    pub confirmation_always: bool,
+    pub confirmation_once: bool,
 
     /// remove directories and their contents recursively
     #[arg(short = 'r', long = "recursive")]
