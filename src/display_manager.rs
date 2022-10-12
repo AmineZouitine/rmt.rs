@@ -155,3 +155,11 @@ fn get_color_display_element(is_restore: bool, is_delete: bool, text: &str) -> C
         text.white()
     }
 }
+
+pub fn get_user_validation(message: &str) -> bool {
+    let mut user_input = String::new();
+    println!("{} {}", message, "[y/n]".green().bold());
+    std::io::stdin().read_line(&mut user_input).unwrap();
+    user_input.pop();
+    user_input == "y" || user_input == "yes"
+}

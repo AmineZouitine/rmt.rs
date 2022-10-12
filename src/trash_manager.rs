@@ -1,4 +1,5 @@
 use crate::arguments_manager::ArgumentsManager;
+use crate::display_manager;
 use crate::structure_manager::{self, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
@@ -119,35 +120,19 @@ pub fn add_all_elements_to_trash(
     is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
+    if arguments_manager.confirmation_once && element_name.len() > 3 {
+        let message = format!(
+            "Sure you want to delete all {} files ?",
+            element_name.len().to_string().bold().green()
+        );
+        if !display_manager::get_user_validation(&message) {
+            return;
+        }
+    }
     for path in element_name {
-        let mut user_input = String::new();
-        if arguments_manager.confirmation_always {
-            println!(
-                "Are you sure to delete {} ? {}",
-                path.bold().green(),
-                "[y/n]".green().bold()
-            );
-            std::io::stdin().read_line(&mut user_input).unwrap();
-            user_input.pop();
-            if user_input == "y" || user_input == "yes" {
-                add_element_to_trash(connection, config, path, is_test, arguments_manager);
-            }
-        } else if arguments_manager.confirmation_once {
-            if element_name.len() > 3 {
-                println!(
-                    "Sure you want to delete all {} files ? {}",
-                    element_name.len().to_string().bold().green(),
-                    "[y/n]".green().bold()
-                );
-                std::io::stdin().read_line(&mut user_input).unwrap();
-                user_input.pop();
-                if user_input == "y" || user_input == "yes" {
-                    add_element_to_trash(connection, config, path, is_test, arguments_manager);
-                }
-            } else {
-                add_element_to_trash(connection, config, path, is_test, arguments_manager);
-            }
-        } else {
+        let message = format!("Are you sure to delete {} ?", path.bold().green());
+        if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
+        {
             add_element_to_trash(connection, config, path, is_test, arguments_manager);
         }
     }
