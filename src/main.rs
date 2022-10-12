@@ -13,8 +13,8 @@ use colored::Colorize;
 
 fn main() {
     let is_test = false;
-    let (config, connection) = structure_manager::setup_structure(is_test);
     let arguments_manager = ArgumentsManager::parse();
+    let (config, connection) = structure_manager::setup_structure(is_test);
 
     if arguments_manager.elements.is_empty()
         && !arguments_manager.is_trash_flush
