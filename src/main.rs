@@ -15,13 +15,16 @@ use std::env;
 fn main() {
     let pkg_name = env!("CARGO_PKG_NAME");
     let pkg_description = env!("CARGO_PKG_DESCRIPTION");
-    let author = env!("CARGO_PKG_NAME");
+    let author = env!("CARGO_PKG_AUTHORS");
     let version = env!("CARGO_PKG_VERSION");
+    let homepage = env!("CARGO_PKG_HOMEPAGE");
 
     let usage = format!(r###"
-{pkg_name} - {pkg_description}
+{pkg_name}: {pkg_description}
+
 author: {author}
-version {version}
+version: {version}
+home page: {homepage}
 
 SYNOPSIS
        {pkg_name} [OPTION]... [FILE]...   -> Use to remove an element and save it
