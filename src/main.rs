@@ -8,65 +8,15 @@ pub mod structure_manager;
 pub mod trash_item;
 pub mod trash_manager;
 use arguments_manager::ArgumentsManager;
+use clap::Parser;
 use colored::Colorize;
-use std::env;
-
 
 fn main() {
-    let pkg_name = env!("CARGO_PKG_NAME");
-    let pkg_description = env!("CARGO_PKG_DESCRIPTION");
-    let author = env!("CARGO_PKG_AUTHORS");
-    let version = env!("CARGO_PKG_VERSION");
-    let homepage = env!("CARGO_PKG_HOMEPAGE");
-
-    let usage = format!(r###"
-{pkg_name}: {pkg_description}
-
-author: {author}
-version: {version}
-home page: {homepage}
-
-SYNOPSIS
-       {pkg_name} [OPTION]... [FILE]...   -> Use to remove an element and save it
-       {pkg_name} trash_display   -> Use to open trash CLI to restore or delete elements in the trash
-       {pkg_name} trash_info    -> Use print some informations about the trash
-       {pkg_name} trash_flush    -> Use to delete every element in the trash
-
-SHORTCUTS
-       {pkg_name} trash_display ->   {pkg_name} td
-       {pkg_name} trash_info    ->   {pkg_name} ti
-       {pkg_name} trash_flush   ->   {pkg_name} tf
-OPTIONS
-
-       -f, --force
-              ignore nonexistent files and arguments, never prompt
-
-       -i     prompt before every removal
-
-       -I     prompt once before removing more than three files, or  when
-              removing  recursively;  less intrusive than -i, while still
-              giving protection against most mistakes
-
-       -r, -R, --recursive
-              remove directories and their contents recursively
-
-       -d, --dir
-              remove empty directories
-
-       -v, --verbose
-              explain what is being done
-
-       --help display this help and exit
-
-       By default, rm does not remove directories.  Use  the  --recursive
-       (-r or -R) option to remove each listed directory, too, along with
-       all of its contents.
-"###);
-
     let is_test = false;
     let (config, connection) = structure_manager::setup_structure(is_test);
-    let mut args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
+    let arguments_manager = ArgumentsManager::parse();
+
+    if arguments_manager.elements.is_empty() {
         println!(
             "{}\nYou should use {}",
             "The arguments are not valid.".red().bold(),
@@ -75,12 +25,7 @@ OPTIONS
         return;
     }
 
-    let arguments_manager = ArgumentsManager::new(&args);
-    ArgumentsManager::filter_args(&mut args);
-
-    if arguments_manager.is_help {
-        println!("{}", usage);
-    } else if arguments_manager.is_trash_display {
+    if arguments_manager.is_trash_display {
         input_manager::start_display(&connection, is_test);
     } else if arguments_manager.is_trash_flush {
         let mut user_input = String::new();
@@ -100,7 +45,7 @@ OPTIONS
         trash_manager::add_all_elements_to_trash(
             &connection,
             &config,
-            &args[1..],
+            &arguments_manager.elements,
             is_test,
             &arguments_manager,
         );
