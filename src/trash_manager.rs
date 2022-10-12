@@ -120,19 +120,19 @@ pub fn add_all_elements_to_trash(
     is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
-    for path in element_name {
-        let mut add_element = true;
-        if arguments_manager.confirmation_always {
-            let message = format!("Are you sure to delete {} ?", path.bold().green());
-            add_element = display_manager::get_user_validation(&message);
-        } else if arguments_manager.confirmation_once && element_name.len() > 3 {
-            let message = format!(
-                "Sure you want to delete all {} files ?",
-                element_name.len().to_string().bold().green()
-            );
-            add_element = display_manager::get_user_validation(&message);
+    if arguments_manager.confirmation_always && element_name.len() > 3 {
+        let message = format!(
+            "Sure you want to delete all {} files ?",
+            element_name.len().to_string().bold().green()
+        );
+        if display_manager::get_user_validation(&message) {
+            return;
         }
-        if add_element {
+    }
+    for path in element_name {
+        let message = format!("Are you sure to delete {} ?", path.bold().green());
+        if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
+        {
             add_element_to_trash(connection, config, path, is_test, arguments_manager);
         }
     }
