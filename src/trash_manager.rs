@@ -120,12 +120,12 @@ pub fn add_all_elements_to_trash(
     is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
-    if arguments_manager.confirmation_always && element_name.len() > 3 {
+    if arguments_manager.confirmation_once && element_name.len() > 3 {
         let message = format!(
             "Sure you want to delete all {} files ?",
             element_name.len().to_string().bold().green()
         );
-        if display_manager::get_user_validation(&message) {
+        if !display_manager::get_user_validation(&message) {
             return;
         }
     }
