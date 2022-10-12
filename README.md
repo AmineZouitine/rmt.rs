@@ -38,7 +38,7 @@ rmt [OPTION]... [FILE|FOLDER]...
 
 Exemples: 
 rmt text.txt
-rmt *
+rmt * -- -text.txt
 rmt folder test.txt *.sh
 ```
 ✨ I like to use **-f** option, to remove all the warnings.
@@ -46,24 +46,18 @@ rmt folder test.txt *.sh
 ### 📺 Launch CLI to restore or flush elements
 
 ```sh
-rmt trash_display
-or
-rmt td
+rmt --td
 ```
 
 ### ❌ Flush all element from the trash
 ```sh
-rmt trash_flush
-or
-rmt tf
+rmt --tf
 ```
 
 ### 🔎 Informations about the trash
 
 ```sh
-rmt trash_info
-or
-rmt ti
+rmt --ti
 ```
 
 ## 🫵 Contribution
