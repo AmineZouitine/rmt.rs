@@ -1,5 +1,7 @@
-use crate::structure_manager;
+use std::process::exit;
+
 use crate::trash_item::TrashItem;
+use crate::{database_errors::RmtDataBaseErrors, structure_manager};
 use rusqlite::{params, types::FromSql, Connection, Row};
 
 // Create the database and the table to save information about deleted elements.
@@ -7,10 +9,9 @@ pub fn setup_data_base(is_test: bool) -> Connection {
     let connection = structure_manager::create_data_base_file(is_test);
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
-    connection
-        .execute(
-            &format!(
-                "CREATE TABLE IF NOT EXISTS {} (
+    let stmt_result = connection.execute(
+        &format!(
+            "CREATE TABLE IF NOT EXISTS {} (
              id INTEGER PRIMARY KEY,
              name TEXT NOT NULL,
              hash NOT NULL UNIQUE,
@@ -20,29 +21,41 @@ pub fn setup_data_base(is_test: bool) -> Connection {
              compression_size INTEGER,
              is_folder INTEGER NOT NULL
          )",
-                table_name
-            ),
-            [],
-        )
-        .unwrap_or_else(|_| panic!("Unable to execute creation of {} table", table_name));
+            table_name
+        ),
+        [],
+    );
 
-    connection
+    match stmt_result {
+        Ok(_) => connection,
+        Err(_) => {
+            println!("{}", RmtDataBaseErrors::DataBaseCreation);
+            exit(1);
+        }
+    }
 }
 
 fn get<T: FromSql>(row: &Row, index: usize) -> T {
-    let element: T = row
-        .get(index)
-        .unwrap_or_else(|_| panic!("Get a {} not valid", index));
-    element
+    match row.get(index) {
+        Ok(element) => element,
+        Err(_) => {
+            println!("{}", RmtDataBaseErrors::GetCellElement(index));
+            exit(1);
+        }
+    }
 }
 
 // Find all elements on the table and convert them to TrashItems
 pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<TrashItem> {
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
-    let mut stmt = connection
-        .prepare(&format!("SELECT * FROM {}", table_name))
-        .expect("Cannot select every element in database");
+    let mut stmt = match connection.prepare(&format!("SELECT * FROM {}", table_name)) {
+        Ok(stmt) => stmt,
+        Err(_) => {
+            println!("{}", RmtDataBaseErrors::SelectAllElements);
+            exit(1);
+        }
+    };
 
     let mut trash_items = Vec::<TrashItem>::new();
 
@@ -88,7 +101,7 @@ pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i32) 
 pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_test: bool) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
-    connection
+    let stmt_result = connection
         .execute(
             &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size, is_folder) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", table_name),
             params![
@@ -100,25 +113,29 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
                 trash_item.compression_size,
                 trash_item.is_folder
             ],
-        )
-        .unwrap_or_else(|_| panic!("Unable to do insert element request with this values : {:?}",
-            trash_item));
+        );
+
+    match stmt_result {
+        Ok(_) => (),
+        Err(_) => println!("{}", RmtDataBaseErrors::InsertTrashItem),
+    };
 }
 
 pub fn delete_trash_item(connection: &Connection, trash_item_id: i32, is_test: bool) {
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
-    connection
-        .execute(
-            &format!("DELETE FROM {} WHERE id = (?1)", table_name),
-            params![trash_item_id],
-        )
-        .unwrap_or_else(|_| {
-            panic!(
-                "Unable to do delete element request with this id : {}",
-                trash_item_id
-            )
-        });
+    let stmt_result = connection.execute(
+        &format!("DELETE FROM {} WHERE id = (?1)", table_name),
+        params![trash_item_id],
+    );
+
+    match stmt_result {
+        Ok(_) => (),
+        Err(_) => {
+            println!("{}", RmtDataBaseErrors::DeleteElementById(trash_item_id));
+            exit(1);
+        }
+    }
 }
 
 pub fn delete_all_trash_item(connection: &Connection, is_test: bool) {

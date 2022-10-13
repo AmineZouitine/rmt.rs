@@ -3,27 +3,34 @@ use std::error::Error;
 
 use colored::Colorize;
 
-use crate::trash_item::{TrashItem};
+use crate::trash_item::TrashItem;
 
 #[derive(Debug)]
 pub enum RmtDataBaseErrors {
     DataBaseCreation,
     SelectAllElements,
-    GetCellElement(u8),
+    GetCellElement(usize),
     DeleteElementById(i32),
-    InsertTrashItem(TrashItem),
-    DeleteAllElement
-
+    InsertTrashItem,
+    DeleteAllElement,
 }
 
 impl RmtDataBaseErrors {
     fn error_message(&self) -> String {
         match self {
             RmtDataBaseErrors::DataBaseCreation => "Impossible to create the database.".to_string(),
-            RmtDataBaseErrors::SelectAllElements => "Impossible to select all the elements.".to_string(),
-            RmtDataBaseErrors::GetCellElement(index) => format!("Impossible to retrieve the cell with index {}.", index.to_string().red().bold()),
-            RmtDataBaseErrors::DeleteElementById(id) => format!("Impossible to delete the element at index {}.", id.to_string().red().bold()),
-            RmtDataBaseErrors::InsertTrashItem(trash_item) => format!("Impossible to insert the trashItem {}.", trash_item.to_string().red().bold()),
+            RmtDataBaseErrors::SelectAllElements => {
+                "Impossible to select all the elements.".to_string()
+            }
+            RmtDataBaseErrors::GetCellElement(index) => format!(
+                "Impossible to retrieve the cell with index {}.",
+                index.to_string().red().bold()
+            ),
+            RmtDataBaseErrors::DeleteElementById(id) => format!(
+                "Impossible to delete the element at index {}.",
+                id.to_string().red().bold()
+            ),
+            RmtDataBaseErrors::InsertTrashItem => format!("Impossible to insert the trashItem.",),
             RmtDataBaseErrors::DeleteAllElement => "Impossible to delete all elements.".to_string(),
         }
     }

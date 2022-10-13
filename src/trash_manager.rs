@@ -1,6 +1,6 @@
+use crate::argument_errors::RmtArgumentErrors;
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
-use crate::argument_errors::RmtArgumentErrors;
 use crate::structure_manager::{self, get_element_name, get_element_path, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
