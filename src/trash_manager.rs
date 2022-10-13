@@ -1,6 +1,6 @@
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
-use crate::structure_manager::{self, get_home_directory_path};
+use crate::structure_manager::{self, get_element_name, get_element_path, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
@@ -29,7 +29,7 @@ pub fn add_element_to_trash(
     is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
-    let element_path = match abspath(element_name) {
+    let mut element_path = match abspath(element_name) {
         Some(path) => {
             if Path::new(&path).is_dir() {
                 let element_in_dir = fs::read_dir(&path).unwrap().count();
@@ -81,6 +81,14 @@ pub fn add_element_to_trash(
     if config.compression {
         // TODO
     } else {
+        let symbolic_path = format!(
+            "{}/{}",
+            get_element_path(&element_path),
+            get_element_name(element_name)
+        );
+        if symbolic_path != element_path {
+            element_path = symbolic_path;
+        }
         fs::rename(&element_path, &new_name).unwrap();
     }
 
