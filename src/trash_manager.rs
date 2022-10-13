@@ -1,3 +1,4 @@
+use crate::argument_errors::RmtArgumentErrors;
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
 use crate::structure_manager::{self, get_element_name, get_element_path, get_home_directory_path};
@@ -28,37 +29,38 @@ pub fn add_element_to_trash(
     element_name: &str,
     is_test: bool,
     arguments_manager: &ArgumentsManager,
-) {
+) -> Result<(), RmtArgumentErrors> {
     let mut element_path = match abspath(element_name) {
         Some(path) => {
             if Path::new(&path).is_dir() {
                 let element_in_dir = fs::read_dir(&path).unwrap().count();
-                if (element_in_dir == 0
+                if element_in_dir == 0
                     && !arguments_manager.is_empty_dir
-                    && !arguments_manager.is_recursive)
-                    || (element_in_dir > 0 && !arguments_manager.is_recursive)
+                    && !arguments_manager.is_recursive
                 {
-                    println!(
-                    "Cannot delete the folder {} without the {} option or {} (for an empty folder)",
-                    element_name.green().bold(),
-                    "-r".bold().green(),
-                    "-d".bold().green()
-                );
-                    return;
+                    return Err(RmtArgumentErrors::InvalidEmptyFolderFlags {
+                        folder_name: element_name.to_string(),
+                    });
+                } else if element_in_dir > 0 && arguments_manager.is_empty_dir {
+                    return Err(RmtArgumentErrors::InvalidDirFlags {
+                        folder_name: element_name.to_string(),
+                        element_in_folder: element_in_dir,
+                    });
+                } else if element_in_dir > 0 && !arguments_manager.is_recursive {
+                    return Err(RmtArgumentErrors::InvalidFillFolderFlags {
+                        folder_name: element_name.to_string(),
+                    });
                 }
             }
             path
         }
         None => {
             if arguments_manager.is_force {
-                return;
+                return Ok(());
             }
-            println!(
-                "Unable to delete {}: No such file or folder (use {} to remove warnings)",
-                element_name.green().bold(),
-                "-f".green().bold()
-            );
-            return;
+            return Err(RmtArgumentErrors::InvalidElementName {
+                element_name: element_name.to_string(),
+            });
         }
     };
 
@@ -119,6 +121,7 @@ pub fn add_element_to_trash(
             element_name.green().bold()
         );
     }
+    Ok(())
 }
 
 pub fn add_all_elements_to_trash(
@@ -141,7 +144,11 @@ pub fn add_all_elements_to_trash(
         let message = format!("Are you sure to delete {} ?", path.bold().green());
         if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
         {
-            add_element_to_trash(connection, config, path, is_test, arguments_manager);
+            if let Err(rmt_error) =
+                add_element_to_trash(connection, config, path, is_test, arguments_manager)
+            {
+                println!("{}", rmt_error);
+            }
         }
     }
 }
