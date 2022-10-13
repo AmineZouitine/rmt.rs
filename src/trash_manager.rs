@@ -1,5 +1,6 @@
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
+use crate::error_manager::RmtError;
 use crate::structure_manager::{self, get_element_name, get_element_path, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
@@ -38,12 +39,13 @@ pub fn add_element_to_trash(
                     && !arguments_manager.is_recursive)
                     || (element_in_dir > 0 && !arguments_manager.is_recursive)
                 {
-                    println!(
-                    "Cannot delete the folder {} without the {} option or {} (for an empty folder)",
-                    element_name.green().bold(),
-                    "-r".bold().green(),
-                    "-d".bold().green()
-                );
+                    // println!(
+                    // "Cannot delete the folder {} without the {} option or {} (for an empty folder)",
+                    // element_name.green().bold(),
+                    // "-r".bold().green(),
+                    // "-d".bold().green()
+                // );
+                    println!("{}", RmtError::InvalidDirFlags { folder_name: element_name.to_string(), element_in_folder: element_in_dir });
                     return;
                 }
             }

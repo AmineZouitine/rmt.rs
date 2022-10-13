@@ -3,6 +3,7 @@ pub mod config;
 pub mod config_manager;
 pub mod data_manager;
 pub mod display_manager;
+pub mod error_manager;
 pub mod input_manager;
 pub mod structure_manager;
 pub mod trash_item;
@@ -10,6 +11,8 @@ pub mod trash_manager;
 use arguments_manager::ArgumentsManager;
 use clap::Parser;
 use colored::Colorize;
+
+use crate::error_manager::RmtError;
 
 fn main() {
     let is_test = false;
@@ -21,11 +24,7 @@ fn main() {
         && !arguments_manager.is_trash_display
         && !arguments_manager.is_trash_info
     {
-        println!(
-            "{}\nYou should use {}",
-            "The arguments are not valid.".red().bold(),
-            "rmt --help".green().bold()
-        );
+        println!("{}", RmtError::InvalidNumberOfArguments(0));
         return;
     }
 
