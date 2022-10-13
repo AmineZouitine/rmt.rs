@@ -3,16 +3,17 @@ pub mod config;
 pub mod config_manager;
 pub mod data_manager;
 pub mod display_manager;
-pub mod error_manager;
+pub mod argument_errors;
 pub mod input_manager;
 pub mod structure_manager;
 pub mod trash_item;
 pub mod trash_manager;
+pub mod database_errors;
 use arguments_manager::ArgumentsManager;
 use clap::Parser;
 use colored::Colorize;
 
-use crate::error_manager::RmtArgumentErrors;
+use crate::argument_errors::RmtArgumentErrors;
 
 fn main() {
     let is_test = false;
