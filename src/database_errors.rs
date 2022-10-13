@@ -3,8 +3,6 @@ use std::error::Error;
 
 use colored::Colorize;
 
-use crate::trash_item::TrashItem;
-
 #[derive(Debug)]
 pub enum RmtDataBaseErrors {
     DataBaseCreation,
@@ -30,7 +28,7 @@ impl RmtDataBaseErrors {
                 "Impossible to delete the element at index {}.",
                 id.to_string().red().bold()
             ),
-            RmtDataBaseErrors::InsertTrashItem => format!("Impossible to insert the trashItem.",),
+            RmtDataBaseErrors::InsertTrashItem => "Impossible to insert the trashItem.".to_string(),
             RmtDataBaseErrors::DeleteAllElement => "Impossible to delete all elements.".to_string(),
         }
     }
