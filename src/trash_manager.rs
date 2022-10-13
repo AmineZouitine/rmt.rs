@@ -1,7 +1,7 @@
 use crate::argument_errors::RmtArgumentErrors;
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
-use crate::structure_manager::{self, get_element_name, get_element_path, get_home_directory_path};
+use crate::structure_manager::{self, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
@@ -14,61 +14,19 @@ use rusqlite::Connection;
 use sha256;
 use std::fs;
 use std::io::{stdout, Write};
-use std::{ffi::OsStr, path::Path};
-
-pub fn abspath(p: &str) -> Option<String> {
-    shellexpand::full(p)
-        .ok()
-        .and_then(|x| Path::new(OsStr::new(x.as_ref())).canonicalize().ok())
-        .and_then(|p| p.into_os_string().into_string().ok())
-}
+use std::path::Path;
 
 pub fn add_element_to_trash(
     connection: &Connection,
     config: &Config,
-    element_name: &str,
+    element_path: &str,
     is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) -> Result<(), RmtArgumentErrors> {
-    let mut element_path = match abspath(element_name) {
-        Some(path) => {
-            if Path::new(&path).is_dir() {
-                let element_in_dir = fs::read_dir(&path).unwrap().count();
-                if element_in_dir == 0
-                    && !arguments_manager.is_empty_dir
-                    && !arguments_manager.is_recursive
-                {
-                    return Err(RmtArgumentErrors::InvalidEmptyFolderFlags {
-                        folder_name: element_name.to_string(),
-                    });
-                } else if element_in_dir > 0 && arguments_manager.is_empty_dir {
-                    return Err(RmtArgumentErrors::InvalidDirFlags {
-                        folder_name: element_name.to_string(),
-                        element_in_folder: element_in_dir,
-                    });
-                } else if element_in_dir > 0 && !arguments_manager.is_recursive {
-                    return Err(RmtArgumentErrors::InvalidFillFolderFlags {
-                        folder_name: element_name.to_string(),
-                    });
-                }
-            }
-            path
-        }
-        None => {
-            if arguments_manager.is_force {
-                return Ok(());
-            }
-            return Err(RmtArgumentErrors::InvalidElementName {
-                element_name: element_name.to_string(),
-            });
-        }
-    };
-
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
-        "{}{}{}{}",
-        element_name,
+        "{}{}{}",
         &element_path,
         element_size,
         chrono::offset::Local::now().timestamp_nanos()
@@ -83,21 +41,13 @@ pub fn add_element_to_trash(
     if config.compression {
         // TODO
     } else {
-        let symbolic_path = format!(
-            "{}/{}",
-            get_element_path(&element_path),
-            get_element_name(element_name)
-        );
-        if symbolic_path != element_path {
-            element_path = symbolic_path;
-        }
         fs::rename(&element_path, &new_name).unwrap();
     }
 
     let element_is_directory = Path::new(&new_name).is_dir();
 
     let trash_item = TrashItem::new(
-        structure_manager::get_element_name(element_name),
+        structure_manager::get_element_name(element_path),
         hash,
         structure_manager::get_element_path(&element_path),
         date.to_string(),
@@ -118,7 +68,7 @@ pub fn add_element_to_trash(
             } else {
                 "file".bold().white()
             },
-            element_name.green().bold()
+            element_path.green().bold()
         );
     }
     Ok(())
@@ -127,20 +77,20 @@ pub fn add_element_to_trash(
 pub fn add_all_elements_to_trash(
     connection: &Connection,
     config: &Config,
-    element_name: &[String],
+    element_paths: &[String],
     is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
-    if arguments_manager.confirmation_once && element_name.len() > 3 {
+    if arguments_manager.confirmation_once && element_paths.len() > 3 {
         let message = format!(
             "Sure you want to delete all {} files ?",
-            element_name.len().to_string().bold().green()
+            element_paths.len().to_string().bold().green()
         );
         if !display_manager::get_user_validation(&message) {
             return;
         }
     }
-    for path in element_name {
+    for path in element_paths {
         let message = format!("Are you sure to delete {} ?", path.bold().green());
         if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
         {
