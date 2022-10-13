@@ -1,6 +1,6 @@
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
-use crate::error_manager::RmtError;
+use crate::error_manager::RmtArgumentErrors;
 use crate::structure_manager::{self, get_element_name, get_element_path, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
@@ -29,7 +29,7 @@ pub fn add_element_to_trash(
     element_name: &str,
     is_test: bool,
     arguments_manager: &ArgumentsManager,
-) -> Result<(), RmtError> {
+) -> Result<(), RmtArgumentErrors> {
     let mut element_path = match abspath(element_name) {
         Some(path) => {
             if Path::new(&path).is_dir() {
@@ -38,16 +38,16 @@ pub fn add_element_to_trash(
                     && !arguments_manager.is_empty_dir
                     && !arguments_manager.is_recursive
                 {
-                    return Err(RmtError::InvalidEmptyFolderFlags {
+                    return Err(RmtArgumentErrors::InvalidEmptyFolderFlags {
                         folder_name: element_name.to_string(),
                     });
                 } else if element_in_dir > 0 && arguments_manager.is_empty_dir {
-                    return Err(RmtError::InvalidDirFlags {
+                    return Err(RmtArgumentErrors::InvalidDirFlags {
                         folder_name: element_name.to_string(),
                         element_in_folder: element_in_dir,
                     });
                 } else if element_in_dir > 0 && !arguments_manager.is_recursive {
-                    return Err(RmtError::InvalidFillFolderFlags {
+                    return Err(RmtArgumentErrors::InvalidFillFolderFlags {
                         folder_name: element_name.to_string(),
                     });
                 }
@@ -58,7 +58,7 @@ pub fn add_element_to_trash(
             if arguments_manager.is_force {
                 return Ok(());
             }
-            return Err(RmtError::InvalidElementName {
+            return Err(RmtArgumentErrors::InvalidElementName {
                 element_name: element_name.to_string(),
             });
         }

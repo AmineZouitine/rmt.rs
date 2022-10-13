@@ -12,7 +12,7 @@ use arguments_manager::ArgumentsManager;
 use clap::Parser;
 use colored::Colorize;
 
-use crate::error_manager::RmtError;
+use crate::error_manager::RmtArgumentErrors;
 
 fn main() {
     let is_test = false;
@@ -24,7 +24,7 @@ fn main() {
         && !arguments_manager.is_trash_display
         && !arguments_manager.is_trash_info
     {
-        println!("{}", RmtError::InvalidNumberOfArguments(0));
+        println!("{}", RmtArgumentErrors::InvalidNumberOfArguments(0));
         return;
     }
 
