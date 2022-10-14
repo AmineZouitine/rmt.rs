@@ -1,7 +1,7 @@
 use rusqlite::Connection;
 
-use crate::{config::Config, config_manager, data_manager};
-use std::{fs, path::Path};
+use crate::{argument_errors::RmtArgumentErrors, config::Config, config_manager, data_manager};
+use std::{ffi::OsStr, fs, path::Path};
 
 // TRASH DIRECTORY CONSTANT
 const TRASH_DIRECTORY_NAME: &str = ".trash_rmt";
@@ -142,6 +142,30 @@ pub fn get_element_path(element_path_with_name: &str) -> String {
         }
     }
     element_path_with_name.to_string()
+}
+
+pub fn relative_path_to_absolute(relative_path: &str) -> Result<String, RmtArgumentErrors> {
+    let original_path = relative_path;
+    let path_result = shellexpand::full(relative_path)
+        .ok()
+        .and_then(|x| Path::new(OsStr::new(x.as_ref())).canonicalize().ok())
+        .and_then(|p| p.into_os_string().into_string().ok());
+
+    if let Some(absolute_path) = path_result {
+        if get_element_name(original_path) != get_element_name(&absolute_path) {
+            Ok(format!(
+                "{}/{}",
+                get_element_path(&absolute_path),
+                get_element_name(original_path)
+            ))
+        } else {
+            Ok(absolute_path)
+        }
+    } else {
+        Err(RmtArgumentErrors::InvalidPath {
+            element_name: original_path.to_string(),
+        })
+    }
 }
 
 #[cfg(test)]

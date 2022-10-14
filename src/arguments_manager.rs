@@ -1,3 +1,6 @@
+use std::{fs, path::Path};
+
+use crate::{argument_errors::RmtArgumentErrors, structure_manager::relative_path_to_absolute};
 use clap::Parser;
 
 #[derive(Parser, Default, Debug)]
@@ -44,4 +47,45 @@ pub struct ArgumentsManager {
     /// Flush all the elements present in the trash
     #[arg(long = "tf")]
     pub is_trash_flush: bool, // rmt trash_flush or rmt tf
+}
+
+impl ArgumentsManager {
+    pub fn filter_all_errors(&mut self) {
+        let mut result: Vec<String> = Vec::new();
+        self.elements
+            .iter()
+            .for_each(|path| match self.filter_error(path) {
+                Ok(absolute_path) => result.push(absolute_path),
+                Err(arg_error) => {
+                    println!("{}", arg_error);
+                }
+            });
+        self.elements = result;
+    }
+
+    fn filter_error(&self, path: &str) -> Result<String, RmtArgumentErrors> {
+        match relative_path_to_absolute(path) {
+            Ok(path) => {
+                if Path::new(&path).is_dir() {
+                    let element_in_folder = fs::read_dir(&path).unwrap().count();
+                    if element_in_folder == 0 && !self.is_empty_dir && !self.is_recursive {
+                        return Err(RmtArgumentErrors::InvalidEmptyFolderFlags {
+                            folder_name: path,
+                        });
+                    } else if element_in_folder > 0 && self.is_empty_dir {
+                        return Err(RmtArgumentErrors::InvalidDirFlags {
+                            folder_name: path,
+                            element_in_folder,
+                        });
+                    } else if element_in_folder > 0 && !self.is_recursive {
+                        return Err(RmtArgumentErrors::InvalidFillFolderFlags {
+                            folder_name: path,
+                        });
+                    }
+                }
+                Ok(path)
+            }
+            Err(invalid_path) => Err(invalid_path),
+        }
+    }
 }

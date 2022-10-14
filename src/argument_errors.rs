@@ -16,7 +16,7 @@ pub enum RmtArgumentErrors {
     InvalidEmptyFolderFlags {
         folder_name: String,
     },
-    InvalidElementName {
+    InvalidPath {
         element_name: String,
     },
 }
@@ -31,7 +31,7 @@ impl RmtArgumentErrors {
             RmtArgumentErrors::InvalidDirFlags { folder_name, element_in_folder } => format!("You cannot delete {} folder with the {} flags because there is {} elements inside, you should use {} flags instead.", folder_name.red().bold(), "-d".red().bold().green(), element_in_folder.to_string().red().bold(), "-r".green().bold()),
             RmtArgumentErrors::InvalidEmptyFolderFlags { folder_name } => format!("You cannot delete {} folder without using {} or {} flags.", folder_name.red().bold(), "-r".green().bold(), "-d".green().bold()),
             RmtArgumentErrors::InvalidFillFolderFlags { folder_name } => format!("You cannot delete {} folder without using {} flags (do no use {} flags because your directory isn't empty).", folder_name.red().bold(), "-r".green().bold(), "-d".green().bold()),
-            RmtArgumentErrors::InvalidElementName { element_name} => format!("you cannot destroy your {} because it doesn't exist (use the {} option to stop getting this warning).",  element_name.red().bold(), "-f".green().bold())
+            RmtArgumentErrors::InvalidPath { element_name} => format!("you cannot destroy your {} because it doesn't exist (use the {} option to stop getting this warning).",  element_name.red().bold(), "-f".green().bold())
         }
     }
 
@@ -48,7 +48,7 @@ impl fmt::Display for RmtArgumentErrors {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}: {}\n{}",
+            "{}: {}\n{}\n",
             "Error".red().bold(),
             self.error_message(),
             RmtArgumentErrors::default_help_message().italic()
