@@ -80,14 +80,15 @@ pub fn add_all_elements_to_trash(
     element_paths: &[String],
     is_test: bool,
     arguments_manager: &ArgumentsManager,
-) {
+) -> i32 {
+    let mut exit_code = 0;
     if arguments_manager.confirmation_once && element_paths.len() > 3 {
         let message = format!(
             "Sure you want to delete all {} files ?",
             element_paths.len().to_string().bold().green()
         );
         if !display_manager::get_user_validation(&message) {
-            return;
+            return 0;
         }
     }
     for path in element_paths {
@@ -98,9 +99,11 @@ pub fn add_all_elements_to_trash(
                 add_element_to_trash(connection, config, path, is_test, arguments_manager)
             {
                 println!("{}", rmt_error);
+                exit_code = 1;
             }
         }
     }
+    exit_code
 }
 
 pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &[i32]) {

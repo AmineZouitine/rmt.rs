@@ -1,14 +1,5 @@
-pub mod argument_errors;
-pub mod arguments_manager;
-pub mod config;
-pub mod config_manager;
-pub mod data_manager;
-pub mod database_errors;
-pub mod display_manager;
-pub mod input_manager;
-pub mod structure_manager;
-pub mod trash_item;
-pub mod trash_manager;
+use rmt_lib::*;
+
 use arguments_manager::ArgumentsManager;
 use clap::Parser;
 use colored::Colorize;
@@ -26,7 +17,7 @@ fn main() {
         && !arguments_manager.is_trash_info
     {
         println!("{}", RmtArgumentErrors::InvalidNumberOfArguments(0));
-        return;
+        std::process::exit(1);
     }
 
     arguments_manager.filter_all_errors();
@@ -44,12 +35,12 @@ fn main() {
     } else if arguments_manager.is_trash_info {
         trash_manager::display_trash_information(&connection, IS_TEST);
     } else {
-        trash_manager::add_all_elements_to_trash(
+        std::process::exit(trash_manager::add_all_elements_to_trash(
             &connection,
             &config,
             &arguments_manager.elements,
             IS_TEST,
             &arguments_manager,
-        );
+        ));
     }
 }

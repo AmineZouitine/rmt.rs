@@ -1,7 +1,8 @@
 use core::fmt;
 use std::error::Error;
 
-use colored::Colorize;
+use colored::{Colorize, ColoredString, Color};
+use termion::color;
 
 #[derive(Debug)]
 pub enum RmtArgumentErrors {
@@ -42,6 +43,8 @@ impl RmtArgumentErrors {
             "rmt".bold()
         )
     }
+
+
 }
 
 impl fmt::Display for RmtArgumentErrors {
