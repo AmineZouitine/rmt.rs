@@ -50,14 +50,16 @@ pub struct ArgumentsManager {
 }
 
 impl ArgumentsManager {
-    pub fn filter_all_errors(&mut self){
+    pub fn filter_all_errors(&mut self) {
         let mut result: Vec<String> = Vec::new();
-        self.elements.iter().for_each(|path| match self.filter_error(path) {
-            Ok(absolute_path) => result.push(absolute_path),
-            Err(arg_error) => {
-                println!("{}", arg_error);
-            }
-        });
+        self.elements
+            .iter()
+            .for_each(|path| match self.filter_error(path) {
+                Ok(absolute_path) => result.push(absolute_path),
+                Err(arg_error) => {
+                    println!("{}", arg_error);
+                }
+            });
         self.elements = result;
     }
 
@@ -83,9 +85,7 @@ impl ArgumentsManager {
                 }
                 Ok(path)
             }
-            Err(invalid_path) => {
-                Err(invalid_path)
-            }
+            Err(invalid_path) => Err(invalid_path),
         }
     }
 }

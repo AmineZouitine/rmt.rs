@@ -48,7 +48,7 @@ impl fmt::Display for RmtArgumentErrors {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}: {}\n{}",
+            "{}: {}\n{}\n",
             "Error".red().bold(),
             self.error_message(),
             RmtArgumentErrors::default_help_message().italic()

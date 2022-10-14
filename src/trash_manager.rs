@@ -49,7 +49,7 @@ pub fn add_element_to_trash(
     let trash_item = TrashItem::new(
         structure_manager::get_element_name(element_path),
         hash,
-        structure_manager::get_element_path(&element_path),
+        structure_manager::get_element_path(element_path),
         date.to_string(),
         element_size,
         compression_size,

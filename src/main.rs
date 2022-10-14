@@ -15,13 +15,12 @@ use colored::Colorize;
 
 use crate::argument_errors::RmtArgumentErrors;
 
-
 const IS_TEST: bool = false;
 fn main() {
     let mut arguments_manager = ArgumentsManager::parse();
     let (config, connection) = structure_manager::setup_structure(IS_TEST);
 
-     if arguments_manager.elements.is_empty()
+    if arguments_manager.elements.is_empty()
         && !arguments_manager.is_trash_flush
         && !arguments_manager.is_trash_display
         && !arguments_manager.is_trash_info
@@ -31,7 +30,6 @@ fn main() {
     }
 
     arguments_manager.filter_all_errors();
-    println!("{:?}", arguments_manager.elements);
 
     if arguments_manager.is_trash_display {
         input_manager::start_display(&connection, IS_TEST);
