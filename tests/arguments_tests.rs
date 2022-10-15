@@ -165,14 +165,30 @@ fn test_delele_empty_folder_d_flags() {
 }
 
 #[test]
-fn test_delele_fill_folder_() {
+fn test_delele_empty_folder_r_flags() {
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
 
     let not_existing_folder_name = unique_name();
 
     fs::create_dir_all(&not_existing_folder_name).unwrap();
 
-    cmd.arg(&not_existing_folder_name).arg("-d");
+    cmd.arg(&not_existing_folder_name).arg("-r");
+
+    cmd.assert().success().stdout(predicate::str::diff(""));
+
+    assert!(!Path::new(&not_existing_folder_name).exists());
+}
+
+#[test]
+fn test_delele_none_empty_folder_r_flag() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+
+    let unique_root_folder = unique_name();
+    let not_existing_folder_name = format!("{}/folder2", &unique_root_folder);
+
+    fs::create_dir_all(&not_existing_folder_name).unwrap();
+
+    cmd.arg(&unique_root_folder).arg("-r");
 
     cmd.assert().success().stdout(predicate::str::diff(""));
 
