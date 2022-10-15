@@ -8,7 +8,7 @@ use crate::argument_errors::RmtArgumentErrors;
 
 const IS_TEST: bool = false;
 fn main() {
-    colored::control::set_override(true);
+    std::env::set_var("CLICOLOR_FORCE", "true");
     let mut arguments_manager = ArgumentsManager::parse();
     let (config, connection) = structure_manager::setup_structure(IS_TEST);
 
