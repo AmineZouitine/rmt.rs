@@ -50,20 +50,27 @@ pub struct ArgumentsManager {
 }
 
 impl ArgumentsManager {
-    pub fn filter_all_errors(&mut self) {
+    pub fn filter_all_errors(&mut self) -> i32 {
+        let mut exit_code = 0;
         let mut result: Vec<String> = Vec::new();
         self.elements
             .iter()
             .for_each(|path| match self.filter_error(path) {
-                Ok(absolute_path) => result.push(absolute_path),
+                Ok(absolute_path_opt) => {
+                    if let Some(absolute_path) = absolute_path_opt {
+                        result.push(absolute_path);
+                    }
+                }
                 Err(arg_error) => {
                     println!("{}", arg_error);
+                    exit_code = 1;
                 }
             });
         self.elements = result;
+        exit_code
     }
 
-    fn filter_error(&self, path: &str) -> Result<String, RmtArgumentErrors> {
+    fn filter_error(&self, path: &str) -> Result<Option<String>, RmtArgumentErrors> {
         match relative_path_to_absolute(path) {
             Ok(path) => {
                 if Path::new(&path).is_dir() {
@@ -83,9 +90,15 @@ impl ArgumentsManager {
                         });
                     }
                 }
-                Ok(path)
+                Ok(Some(path))
             }
-            Err(invalid_path) => Err(invalid_path),
+            Err(invalid_path) => {
+                if self.is_force {
+                    Ok(None)
+                } else {
+                    Err(invalid_path)
+                }
+            }
         }
     }
 }

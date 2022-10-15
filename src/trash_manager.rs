@@ -1,4 +1,3 @@
-use crate::argument_errors::RmtArgumentErrors;
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
 use crate::structure_manager::{self, get_home_directory_path};
@@ -22,7 +21,7 @@ pub fn add_element_to_trash(
     element_path: &str,
     is_test: bool,
     arguments_manager: &ArgumentsManager,
-) -> Result<(), RmtArgumentErrors> {
+) {
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
@@ -71,7 +70,6 @@ pub fn add_element_to_trash(
             element_path.green().bold()
         );
     }
-    Ok(())
 }
 
 pub fn add_all_elements_to_trash(
@@ -94,11 +92,7 @@ pub fn add_all_elements_to_trash(
         let message = format!("Are you sure to delete {} ?", path.bold().green());
         if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
         {
-            if let Err(rmt_error) =
-                add_element_to_trash(connection, config, path, is_test, arguments_manager)
-            {
-                println!("{}", rmt_error);
-            }
+            add_element_to_trash(connection, config, path, is_test, arguments_manager)
         }
     }
 }

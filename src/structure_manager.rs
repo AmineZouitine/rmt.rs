@@ -162,7 +162,7 @@ pub fn relative_path_to_absolute(relative_path: &str) -> Result<String, RmtArgum
             Ok(absolute_path)
         }
     } else {
-        Err(RmtArgumentErrors::InvalidPath {
+        Err(RmtArgumentErrors::InvalidPathWithoutForceFlags {
             element_name: original_path.to_string(),
         })
     }
