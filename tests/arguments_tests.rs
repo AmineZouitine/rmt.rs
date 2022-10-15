@@ -28,8 +28,12 @@ fn test_only_flags() {
 fn test_not_existing_file_without_force() {
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
 
-    let not_existing_file_name = "rmt_not_existing_file.rmt".to_string();
     // I hope you don't have a file name like that
+    let not_existing_file_name = sha256::digest(format!(
+        "{}",
+        chrono::offset::Local::now().timestamp_nanos()
+    ));
+
     cmd.arg(&not_existing_file_name);
 
     let expected_output = format!(
