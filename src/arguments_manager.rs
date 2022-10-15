@@ -50,7 +50,8 @@ pub struct ArgumentsManager {
 }
 
 impl ArgumentsManager {
-    pub fn filter_all_errors(&mut self) {
+    pub fn filter_all_errors(&mut self) -> i32 {
+        let mut exit_code = 0;
         let mut result: Vec<String> = Vec::new();
         self.elements
             .iter()
@@ -58,9 +59,11 @@ impl ArgumentsManager {
                 Ok(absolute_path) => result.push(absolute_path),
                 Err(arg_error) => {
                     println!("{}", arg_error);
+                    exit_code = 1;
                 }
             });
         self.elements = result;
+        exit_code
     }
 
     fn filter_error(&self, path: &str) -> Result<String, RmtArgumentErrors> {
@@ -85,7 +88,13 @@ impl ArgumentsManager {
                 }
                 Ok(path)
             }
-            Err(invalid_path) => Err(invalid_path),
+            Err(invalid_path) => {
+                if self.is_force {
+                    Err(RmtArgumentErrors::InvalidPathWithForceFlags)
+                } else {
+                    Err(invalid_path)
+                }
+            }
         }
     }
 }

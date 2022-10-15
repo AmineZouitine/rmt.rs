@@ -8,6 +8,7 @@ use crate::argument_errors::RmtArgumentErrors;
 
 const IS_TEST: bool = false;
 fn main() {
+    colored::control::set_override(true);
     let mut arguments_manager = ArgumentsManager::parse();
     let (config, connection) = structure_manager::setup_structure(IS_TEST);
 
@@ -20,7 +21,7 @@ fn main() {
         std::process::exit(1);
     }
 
-    arguments_manager.filter_all_errors();
+    let exit_code = arguments_manager.filter_all_errors();
 
     if arguments_manager.is_trash_display {
         input_manager::start_display(&connection, IS_TEST);
@@ -35,12 +36,14 @@ fn main() {
     } else if arguments_manager.is_trash_info {
         trash_manager::display_trash_information(&connection, IS_TEST);
     } else {
-        std::process::exit(trash_manager::add_all_elements_to_trash(
+        trash_manager::add_all_elements_to_trash(
             &connection,
             &config,
             &arguments_manager.elements,
             IS_TEST,
             &arguments_manager,
-        ));
+        );
     }
+
+    std::process::exit(exit_code)
 }

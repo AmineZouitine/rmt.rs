@@ -22,7 +22,7 @@ pub fn add_element_to_trash(
     element_path: &str,
     is_test: bool,
     arguments_manager: &ArgumentsManager,
-) -> Result<(), RmtArgumentErrors> {
+) {
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
@@ -71,7 +71,6 @@ pub fn add_element_to_trash(
             element_path.green().bold()
         );
     }
-    Ok(())
 }
 
 pub fn add_all_elements_to_trash(
@@ -80,30 +79,23 @@ pub fn add_all_elements_to_trash(
     element_paths: &[String],
     is_test: bool,
     arguments_manager: &ArgumentsManager,
-) -> i32 {
-    let mut exit_code = 0;
+) {
     if arguments_manager.confirmation_once && element_paths.len() > 3 {
         let message = format!(
             "Sure you want to delete all {} files ?",
             element_paths.len().to_string().bold().green()
         );
         if !display_manager::get_user_validation(&message) {
-            return 0;
+            return;
         }
     }
     for path in element_paths {
         let message = format!("Are you sure to delete {} ?", path.bold().green());
         if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
         {
-            if let Err(rmt_error) =
-                add_element_to_trash(connection, config, path, is_test, arguments_manager)
-            {
-                println!("{}", rmt_error);
-                exit_code = 1;
-            }
+            add_element_to_trash(connection, config, path, is_test, arguments_manager)
         }
     }
-    exit_code
 }
 
 pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &[i32]) {
