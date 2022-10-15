@@ -88,3 +88,54 @@ fn test_delele_empty_folder_without_flags() {
 
     fs::remove_dir_all(&not_existing_folder_name).unwrap();
 }
+
+
+#[test]
+fn test_delele_none_empty_folder_without_flags() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+
+    let unique_root_folder = unique_name();
+    let not_existing_folder_name = format!("{}/folder2", &unique_root_folder);
+
+    fs::create_dir_all(&not_existing_folder_name).unwrap();
+
+    cmd.arg(&unique_root_folder);
+
+    let expected_output = format!(
+        "{}\n",
+        RmtArgumentErrors::InvalidFillFolderFlags { 
+            folder_name: format!("{}/{}", std::env::current_dir().unwrap().display(), unique_root_folder)
+        }
+    );
+    cmd.assert()
+        .failure()
+        .stdout(predicate::str::diff(expected_output));
+
+    fs::remove_dir_all(&not_existing_folder_name).unwrap();
+}
+
+
+#[test]
+fn test_delele_none_empty_folder_d_flags() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+
+    let unique_root_folder = unique_name();
+    let not_existing_folder_name = format!("{}/folder2", &unique_root_folder);
+
+    fs::create_dir_all(&not_existing_folder_name).unwrap();
+
+    cmd.arg(&unique_root_folder).arg("-d");
+
+    let expected_output = format!(
+        "{}\n",
+        RmtArgumentErrors::InvalidDirFlags { 
+            element_in_folder: 1,
+            folder_name: format!("{}/{}", std::env::current_dir().unwrap().display(), unique_root_folder)
+        }
+    );
+    cmd.assert()
+        .failure()
+        .stdout(predicate::str::diff(expected_output));
+
+    fs::remove_dir_all(&not_existing_folder_name).unwrap();
+}
