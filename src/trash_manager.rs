@@ -1,4 +1,3 @@
-use crate::argument_errors::RmtArgumentErrors;
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
 use crate::structure_manager::{self, get_home_directory_path};

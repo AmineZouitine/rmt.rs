@@ -51,8 +51,5 @@ fn test_not_existing_file_with_force() {
     // I hope you don't have a file name like that
     cmd.arg(&not_existing_file_name).arg("-f");
 
-    let expected_output = format!("{}\n", RmtArgumentErrors::InvalidPathWithForceFlags);
-    cmd.assert()
-        .failure()
-        .stdout(predicate::str::diff(expected_output));
+    cmd.assert().success().stdout(predicate::str::diff(""));
 }
