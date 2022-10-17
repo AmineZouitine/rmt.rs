@@ -1,6 +1,6 @@
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
-use crate::structure_manager::{self, get_home_directory_path};
+use crate::structure_manager::{self, get_element_path, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
@@ -8,9 +8,10 @@ use crate::{
 
 use chrono;
 use colored::Colorize;
-use fs_extra::dir::get_size;
+use fs_extra::dir::{self, get_size};
 use rusqlite::Connection;
 use sha256;
+
 use std::fs;
 use std::io::{stdout, Write};
 use std::path::Path;
@@ -35,15 +36,20 @@ pub fn add_element_to_trash(
 
     let compression_size: Option<u64> = None;
 
-    let new_name = format!("{}/{}", get_trash_directory_path(is_test), hash);
+    let new_name = format!("{}/{}", get_element_path(element_path), hash);
+    let element_is_directory = Path::new(&element_path).is_dir();
 
     if config.compression {
         // TODO
     } else {
         fs::rename(&element_path, &new_name).unwrap();
+        fs_extra::move_items(
+            &[&new_name],
+            &get_trash_directory_path(is_test),
+            &dir::CopyOptions::new(),
+        )
+        .unwrap();
     }
-
-    let element_is_directory = Path::new(&new_name).is_dir();
 
     let trash_item = TrashItem::new(
         structure_manager::get_element_name(element_path),
@@ -139,32 +145,27 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         trash_item.hash
     );
 
-    if Path::new(&trash_item.path).is_dir() {
-        let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
-        let element_path_restored = format!("{}/{}", &trash_item.path, "restored_item");
-        if !Path::new(&element_path_name).exists() {
-            println!(
-                "{} has been restored ! :D\r",
-                trash_item.name.green().bold()
-            );
-            println!(
-                "You can find it at this path: {}\r",
-                element_path_name.green().bold()
-            );
-            fs::rename(&path_in_trash, &element_path_name).unwrap();
-            return;
-        } else if !Path::new(&element_path_restored).exists() {
-            println!(
-                "{} has been restored ! :D\r",
-                trash_item.name.green().bold()
-            );
-            println!(
-                "You can find it at this path: {}\r",
-                element_path_restored.green().bold()
-            );
-            fs::rename(&path_in_trash, &element_path_restored).unwrap();
-            return;
-        }
+    let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
+
+    if Path::new(&trash_item.path).is_dir() && !Path::new(&element_path_name).exists() {
+        let element_path_renamed =
+            format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
+        println!(
+            "{} has been restored ! :D\r",
+            trash_item.name.green().bold()
+        );
+        println!(
+            "You can find it at this path: {}\r",
+            element_path_name.green().bold()
+        );
+        fs::rename(&path_in_trash, &element_path_renamed).unwrap();
+        fs_extra::move_items(
+            &[&element_path_renamed],
+            &trash_item.path,
+            &dir::CopyOptions::new(),
+        )
+        .unwrap();
+        return;
     }
     println!("Unfortunately Path {} doesn't exist anymore or there is a file with the same name inside, so we can't restore your element to the original path :c\r\n{}\r",
      &trash_item.path.green().bold(), "Please enter a new absolute path to restore your element".bold());
@@ -205,11 +206,9 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         std::io::stdin().read_line(&mut new_path).unwrap();
         new_path.pop();
     }
-    fs::rename(
-        &path_in_trash,
-        &format!("{}/{}", &new_path, &trash_item.name),
-    )
-    .unwrap();
+    let new_name = format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
+    fs::rename(&path_in_trash, &new_name).unwrap();
+    fs_extra::move_items(&[new_name], &new_path, &dir::CopyOptions::new()).unwrap();
 
     println!(
         "{} has been restored ! :D\r",
