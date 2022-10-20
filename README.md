@@ -10,7 +10,7 @@
 
 ![UmzJ1r8Z7D](https://user-images.githubusercontent.com/53370597/195318131-e1b3ad8b-4022-41c7-a226-3b9a28a1ee94.gif)
 
-## ‼️ Rmt.rs is not stable yet, do not use it for critical usages for the moment
+## ‼️ Rmt is not stable yet, do not use it for critical usages for the moment
 
 ## 👨🏽‍💻 Installation
 
