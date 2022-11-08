@@ -15,7 +15,6 @@
 ## 👨🏽‍💻 Installation
 
 
-
 ### ⚡️ Quick start
 
 Download the binary depending on your configuration here: https://github.com/AmineZouitine/rmt.rs/releases
