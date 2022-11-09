@@ -5,12 +5,12 @@ use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
 };
-
 use chrono;
 use colored::Colorize;
 use fs_extra::dir::{self, get_size};
 use rusqlite::Connection;
 use sha256;
+use std::process::Command;
 
 use std::fs;
 use std::io::{stdout, Write};
@@ -40,6 +40,10 @@ pub fn add_element_to_trash(
     let element_is_directory = Path::new(&element_path).is_dir();
 
     if config.compression {
+        Command::new("zip")
+            .arg("-qr")
+            .arg(&new_name)
+            .arg(&element_path);
         // TODO
     } else {
         fs::rename(&element_path, &new_name).unwrap();
@@ -103,12 +107,24 @@ pub fn add_all_elements_to_trash(
     }
 }
 
-pub fn remove_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &[i32]) {
+pub fn remove_all_elements_selected(
+    connection: &Connection,
+    is_test: bool,
+    trash_items_ids: &[i32],
+) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
         remove_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
+}
+
+pub fn remove_all_elements(connection: &Connection, is_test: bool) {
+    let trash_items = data_manager::find_all_trash_items(connection, is_test);
+    trash_items.iter().for_each(|trash_item| {
+        remove_element(trash_item, is_test);
+    });
+    data_manager::delete_all_trash_item(connection, is_test);
 }
 
 fn remove_element(trash_item: &TrashItem, is_test: bool) {
@@ -130,7 +146,11 @@ fn remove_element(trash_item: &TrashItem, is_test: bool) {
     );
 }
 
-pub fn restore_all_elements(connection: &Connection, is_test: bool, trash_items_ids: &[i32]) {
+pub fn restore_all_elements_selected(
+    connection: &Connection,
+    is_test: bool,
+    trash_items_ids: &[i32],
+) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
         restore_element(&trash_item, is_test);

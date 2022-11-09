@@ -31,7 +31,7 @@ fn main() {
             "flush".green().bold()
         );
         if display_manager::get_user_validation(&message) {
-            data_manager::delete_all_trash_item(&connection, IS_TEST);
+            trash_manager::remove_all_elements(&connection, IS_TEST);
         }
     } else if arguments_manager.is_trash_info {
         trash_manager::display_trash_information(&connection, IS_TEST);
