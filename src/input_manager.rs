@@ -82,12 +82,12 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                     write!(stdout_display, "{}", termion::cursor::Show).unwrap();
                     write!(stdout_display, "{}", termion::clear::All).unwrap();
 
-                    trash_manager::remove_all_elements(
+                    trash_manager::remove_all_elements_selected(
                         connection,
                         is_test,
                         &display_informations.selected_trash_items.delete,
                     );
-                    trash_manager::restore_all_elements(
+                    trash_manager::restore_all_elements_selected(
                         connection,
                         is_test,
                         &display_informations.selected_trash_items.restore,
