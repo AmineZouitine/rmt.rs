@@ -26,9 +26,13 @@ docker run -d Image_name
 docker exec -it id sh
 ```
 
+### Contact
+email: amine.zouitinegm@gmail.com
+
 ### RoadMap
 
-Use this backlog : https://github.com/users/AmineZouitine/projects/1
-feel free to add the features you think are interesting
+You can look at the issues to fix some bugs or add new features to ask by the community. 
+
+You can propose any idea via the issues and make me a PR :D 
 
 
