@@ -10,8 +10,7 @@ The typical workflow for contributing to `rmt.rs` is:
 3. Commit changes.
 4. Push the changes to your fork.
 5. Send a pull request from your fork back to the original `main` branch.
-## Discord
-https://discord.gg/mJR59KNX
+
 ## Run test
 We are testing on the same database so we should run a test on a single thread.
 ```sh
