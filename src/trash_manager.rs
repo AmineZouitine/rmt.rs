@@ -12,9 +12,11 @@ use rusqlite::Connection;
 use sha256;
 use std::process::Command;
 
-use std::fs;
-use std::io::{stdout, Write};
+use std::fs::{self, File};
+use std::io::{Read, stdout, Write};
 use std::path::Path;
+use chacha20poly1305::{aead::stream, KeyInit, XChaCha20Poly1305};
+use rand::{rngs::OsRng, RngCore};
 
 pub fn add_element_to_trash(
     connection: &Connection,
@@ -35,6 +37,7 @@ pub fn add_element_to_trash(
     let date = chrono::offset::Local::now().format("%Y-%m-%d %H:%M:%S");
 
     let compression_size: Option<u64> = None;
+    let mut is_encrypted = false;
 
     let new_name = format!("{}/{}", get_element_path(element_path), hash);
     let element_is_directory = Path::new(&element_path).is_dir();
@@ -45,6 +48,12 @@ pub fn add_element_to_trash(
             .arg(&new_name)
             .arg(&element_path);
         // TODO
+    } else if config.encryption && !element_is_directory {
+        let dist_path = format!("{}/{}", get_trash_directory_path(is_test), hash);
+        encrypt_element(element_path, &dist_path)
+            .expect(&format!("Error encrypting file"));
+        fs::remove_file(element_path).unwrap();
+        is_encrypted = true;
     } else {
         fs::rename(&element_path, &new_name).unwrap();
         fs_extra::move_items(
@@ -58,13 +67,13 @@ pub fn add_element_to_trash(
     let trash_item = TrashItem::new(
         structure_manager::get_element_name(element_path),
         hash,
-        structure_manager::get_element_path(element_path),
+        get_element_path(element_path),
         date.to_string(),
         element_size,
         compression_size,
         element_is_directory,
+        is_encrypted,
     );
-
     if !arguments_manager.is_destroy {
         data_manager::insert_trash_item(connection, &trash_item, is_test);
     }
@@ -80,6 +89,130 @@ pub fn add_element_to_trash(
             element_path.green().bold()
         );
     }
+}
+
+fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let encryption_key = dialoguer::Password::new()
+        .with_prompt("Encryption key")
+        .with_confirmation("Confirm encryption key", "Inputs do not match")
+        .interact()?;
+    let argon2_config = argon2::Config {
+        variant: argon2::Variant::Argon2id,
+        hash_length: 32,
+        lanes: 8,
+        mem_cost: 16 * 1024,
+        time_cost: 8,
+        ..Default::default()
+    };
+    let mut salt = [0u8; 32];
+    let mut nonce = [0u8; 19];
+    OsRng.fill_bytes(&mut salt);
+    OsRng.fill_bytes(&mut nonce);
+    // turn insecure passphrase into secure key
+    let key = argon2::hash_raw(encryption_key.as_bytes(), &salt, &argon2_config)?;
+    let aead = XChaCha20Poly1305::new(key[..].into());
+    let mut stream_encryptor = stream::EncryptorBE32::from_aead(aead, nonce[..].into());
+    let mut source_file = File::open(source_path)?;
+    let mut dist_file = File::create(dist_path)?;
+
+    // store salt and nonce in the encrypted file to be used when decrypting
+    dist_file.write(&salt)?;
+    dist_file.write(&nonce)?;
+    // encrypt data in small chunk of 500 bytes
+    const BUFFER_LEN: usize = 500;
+    let mut buffer = [0u8; BUFFER_LEN];
+
+    loop {
+        let read_count = source_file.read(&mut buffer)?;
+
+        if read_count == BUFFER_LEN {
+            let ciphertext = stream_encryptor
+                .encrypt_next(buffer.as_slice());
+            match ciphertext {
+                Ok(ciphertext) => dist_file.write(&ciphertext)?,
+                Err(_) => {
+                    let _ = fs::remove_file(dist_path);
+                    panic!("Error encrypting file");
+                }
+            };
+        } else {
+            let ciphertext = stream_encryptor
+                .encrypt_last(&buffer[..read_count]);
+            match ciphertext {
+                Ok(ciphertext) => dist_file.write(&ciphertext)?,
+                Err(_) => {
+                    let _ = fs::remove_file(dist_path);
+                    panic!("Error encrypting file");
+                }
+            };
+            break;
+        }
+    }
+    Ok(())
+}
+
+fn decrypt_element(encrypted_path: &str, dist_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut salt = [0u8; 32];
+    let mut nonce = [0u8; 19];
+
+    let mut encrypted_file = File::open(encrypted_path)?;
+    let mut dist_file = File::create(dist_path)?;
+
+    let mut read_count = encrypted_file.read(&mut salt)?;
+    if read_count != salt.len() {
+        panic!("Error reading salt.");
+    }
+    read_count = encrypted_file.read(&mut nonce)?;
+    if read_count != nonce.len() {
+        panic!("Error reading nonce.");
+    }
+
+    let argon2_config = argon2::Config {
+        variant: argon2::Variant::Argon2id,
+        hash_length: 32,
+        lanes: 8,
+        mem_cost: 16 * 1024,
+        time_cost: 8,
+        ..Default::default()
+    };
+    let encryption_key = dialoguer::Password::new()
+        .with_prompt("Encryption key")
+        .with_confirmation("Confirm encryption key", "Inputs do not match")
+        .interact()?;
+    let key = argon2::hash_raw(encryption_key.as_bytes(), &salt, &argon2_config).unwrap();
+
+    let aead = XChaCha20Poly1305::new(key[..32].into());
+    let mut stream_decryptor = stream::DecryptorBE32::from_aead(aead, nonce[..].into());
+    const BUFFER_LEN: usize = 500 + 16;
+    let mut buffer = [0u8; BUFFER_LEN];
+
+    loop {
+        let read_count = encrypted_file.read(&mut buffer)?;
+
+        if read_count == BUFFER_LEN {
+            let plaintext = stream_decryptor
+                .decrypt_next(buffer.as_slice());
+            match plaintext {
+                Ok(plaintext) => dist_file.write(&plaintext)?,
+                Err(_) => {
+                    let _ = fs::remove_file(dist_path);
+                    panic!("Error decrypting file");
+                }
+            };
+        } else {
+            let plaintext = stream_decryptor
+                .decrypt_last(&buffer[..read_count]);
+            match plaintext {
+                Ok(plaintext) => dist_file.write(&plaintext)?,
+                Err(_) => {
+                    let _ = fs::remove_file(dist_path);
+                    panic!("Error decrypting file");
+                }
+            };
+            break;
+        }
+    }
+    Ok(())
 }
 
 pub fn add_all_elements_to_trash(
@@ -130,13 +263,13 @@ pub fn remove_all_elements(connection: &Connection, is_test: bool) {
 fn remove_element(trash_item: &TrashItem, is_test: bool) {
     let element_path = format!(
         "{}/{}",
-        structure_manager::get_trash_directory_path(is_test),
+        get_trash_directory_path(is_test),
         trash_item.hash
     );
     if Path::new(&element_path).is_dir() {
-        std::fs::remove_dir_all(&element_path).unwrap();
+        fs::remove_dir_all(&element_path).unwrap();
     } else {
-        std::fs::remove_file(&element_path).unwrap();
+        fs::remove_file(&element_path).unwrap();
     }
 
     println!(
@@ -161,15 +294,13 @@ pub fn restore_all_elements_selected(
 fn restore_element(trash_item: &TrashItem, is_test: bool) {
     let path_in_trash = format!(
         "{}/{}",
-        structure_manager::get_trash_directory_path(is_test),
+        get_trash_directory_path(is_test),
         trash_item.hash
     );
 
     let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
 
     if Path::new(&trash_item.path).is_dir() && !Path::new(&element_path_name).exists() {
-        let element_path_renamed =
-            format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
         println!(
             "{} has been restored ! :D\r",
             trash_item.name.green().bold()
@@ -178,13 +309,21 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
             "You can find it at this path: {}\r",
             element_path_name.green().bold()
         );
-        fs::rename(&path_in_trash, &element_path_renamed).unwrap();
-        fs_extra::move_items(
-            &[&element_path_renamed],
-            &trash_item.path,
-            &dir::CopyOptions::new(),
-        )
-        .unwrap();
+        if trash_item.is_encrypted {
+            let dist_path = format!("{}/{}", &trash_item.path, trash_item.name);
+            decrypt_element(&path_in_trash, &dist_path)
+                .expect(&format!("Error decrypting file"));
+            fs::remove_file(&path_in_trash).unwrap();
+        } else {
+            let element_path_renamed =
+                format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
+            fs::rename(&path_in_trash, &element_path_renamed).unwrap();
+            fs_extra::move_items(
+                &[&element_path_renamed],
+                &trash_item.path,
+                &dir::CopyOptions::new(),
+            ).unwrap();
+        }
         return;
     }
     println!("Unfortunately Path {} doesn't exist anymore or there is a file with the same name inside, so we can't restore your element to the original path :c\r\n{}\r",
@@ -226,10 +365,17 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         std::io::stdin().read_line(&mut new_path).unwrap();
         new_path.pop();
     }
-    let new_name = format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
-    fs::rename(&path_in_trash, &new_name).unwrap();
-    fs_extra::move_items(&[new_name], &new_path, &dir::CopyOptions::new()).unwrap();
 
+    if trash_item.is_encrypted {
+        let dist_path = format!("{}/{}", &new_path, trash_item.name);
+        decrypt_element(&path_in_trash, &dist_path)
+            .expect(&format!("Error decrypting file"));
+        fs::remove_file(&path_in_trash).unwrap();
+    } else {
+        let new_name = format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
+        fs::rename(&path_in_trash, &new_name).unwrap();
+        fs_extra::move_items(&[new_name], &new_path, &dir::CopyOptions::new()).unwrap();
+    }
     println!(
         "{} has been restored ! :D\r",
         trash_item.name.green().bold()

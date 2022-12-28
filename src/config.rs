@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     // The file will be saved in the recycle garbage can with compression (zip) or without.
     pub compression: bool,
+    pub encryption: bool,
     // Defines the set of element rules to be checked before adding an element to the trash or removing it
     pub trash: Option<Trash>,
 }
@@ -22,6 +23,7 @@ impl Config {
     pub fn new_default_config() -> Self {
         Self {
             compression: false,
+            encryption: false,
             trash: None,
         }
     }

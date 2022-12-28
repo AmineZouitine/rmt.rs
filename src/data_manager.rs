@@ -19,7 +19,8 @@ pub fn setup_data_base(is_test: bool) -> Connection {
              date TEXT NOT NULL,
              real_size INTEGER NOT NULL,
              compression_size INTEGER,
-             is_folder INTEGER NOT NULL
+             is_folder INTEGER NOT NULL,
+             is_encrypted INTEGER NOT NULL
          )",
             table_name
         ),
@@ -69,6 +70,7 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
             real_size: get(row, 5),
             compression_size: get(row, 6),
             is_folder: get(row, 7),
+            is_encrypted: get(row, 8),
         })
     });
 
@@ -103,7 +105,7 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
 
     let stmt_result = connection
         .execute(
-            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size, is_folder) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", table_name),
+            &format!("INSERT INTO {} (name, hash, path, date, real_size, compression_size, is_folder, is_encrypted) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)", table_name),
             params![
                 trash_item.name,
                 trash_item.hash,
@@ -111,7 +113,8 @@ pub fn insert_trash_item(connection: &Connection, trash_item: &TrashItem, is_tes
                 trash_item.date,
                 trash_item.real_size,
                 trash_item.compression_size,
-                trash_item.is_folder
+                trash_item.is_folder,
+                trash_item.is_encrypted,
             ],
         );
 
@@ -165,6 +168,7 @@ mod tests {
             10,
             None,
             false,
+            false,
         );
         insert_trash_item(&connection, &trash_item, is_test);
 
@@ -188,6 +192,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             Some(4),
+            false,
             false,
         );
         insert_trash_item(&connection, &trash_item, is_test);
@@ -213,6 +218,7 @@ mod tests {
             10,
             None,
             false,
+            false,
         );
 
         let mut trash_item2 = TrashItem::new(
@@ -222,6 +228,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             Some(4),
+            false,
             false,
         );
 
@@ -252,6 +259,7 @@ mod tests {
             "00::00::01".to_string(),
             10,
             None,
+            false,
             false,
         );
 
