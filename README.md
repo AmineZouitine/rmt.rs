@@ -58,6 +58,19 @@ rmt --tf
 rmt --ti
 ```
 
+## 🔧 Using the configuration file
+
+You can customize the behavior of the trash bin by editing the configuration file located at **~/.trash_rmt/config_rmt.yml**.
+
+Currently, you have the option to encrypt your data so that it becomes unreadable from the trash. Compression is a feature that will be available in the future.
+
+```yml
+compression: false # not implemented yet
+encryption: true
+trash: null
+```
+
+
 ## 🫵 Contribution
 
 You can find all the information in the file [**CONTRIBUTING.md**](./CONTRIBUTING.md). Hoping to see you soon in my pull request 😊
