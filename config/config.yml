@@ -1,4 +1,5 @@
 compression: true
+encryption: true
 
 trash:
     max_size: 10000

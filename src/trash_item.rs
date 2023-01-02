@@ -10,6 +10,7 @@ pub struct TrashItem {
     pub real_size: u64,
     pub compression_size: Option<u64>,
     pub is_folder: bool,
+    pub is_encrypted: bool,
 }
 
 impl TrashItem {
@@ -21,6 +22,7 @@ impl TrashItem {
         real_size: u64,
         compression_size: Option<u64>,
         is_folder: bool,
+        is_encrypted: bool,
     ) -> Self {
         Self {
             id: -1,
@@ -31,6 +33,7 @@ impl TrashItem {
             real_size,
             compression_size,
             is_folder,
+            is_encrypted,
         }
     }
 }
