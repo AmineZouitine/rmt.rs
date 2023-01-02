@@ -12,11 +12,11 @@ use rusqlite::Connection;
 use sha256;
 use std::process::Command;
 
-use std::fs::{self, File};
-use std::io::{Read, stdout, Write};
-use std::path::Path;
 use chacha20poly1305::{aead::stream, KeyInit, XChaCha20Poly1305};
 use rand::{rngs::OsRng, RngCore};
+use std::fs::{self, File};
+use std::io::{stdout, Read, Write};
+use std::path::Path;
 
 pub fn add_element_to_trash(
     connection: &Connection,
@@ -50,8 +50,7 @@ pub fn add_element_to_trash(
         // TODO
     } else if config.encryption && !element_is_directory {
         let dist_path = format!("{}/{}", get_trash_directory_path(is_test), hash);
-        encrypt_element(element_path, &dist_path)
-            .expect(&format!("Error encrypting file"));
+        encrypt_element(element_path, &dist_path).expect("Error encrypting file");
         fs::remove_file(element_path).unwrap();
         is_encrypted = true;
     } else {
@@ -116,8 +115,8 @@ fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std
     let mut dist_file = File::create(dist_path)?;
 
     // store salt and nonce in the encrypted file to be used when decrypting
-    dist_file.write(&salt)?;
-    dist_file.write(&nonce)?;
+    dist_file.write_all(&salt)?;
+    dist_file.write_all(&nonce)?;
     // encrypt data in small chunk of 500 bytes
     const BUFFER_LEN: usize = 500;
     let mut buffer = [0u8; BUFFER_LEN];
@@ -126,8 +125,7 @@ fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std
         let read_count = source_file.read(&mut buffer)?;
 
         if read_count == BUFFER_LEN {
-            let ciphertext = stream_encryptor
-                .encrypt_next(buffer.as_slice());
+            let ciphertext = stream_encryptor.encrypt_next(buffer.as_slice());
             match ciphertext {
                 Ok(ciphertext) => dist_file.write(&ciphertext)?,
                 Err(_) => {
@@ -136,8 +134,7 @@ fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std
                 }
             };
         } else {
-            let ciphertext = stream_encryptor
-                .encrypt_last(&buffer[..read_count]);
+            let ciphertext = stream_encryptor.encrypt_last(&buffer[..read_count]);
             match ciphertext {
                 Ok(ciphertext) => dist_file.write(&ciphertext)?,
                 Err(_) => {
@@ -151,7 +148,10 @@ fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std
     Ok(())
 }
 
-fn decrypt_element(encrypted_path: &str, dist_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn decrypt_element(
+    encrypted_path: &str,
+    dist_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut salt = [0u8; 32];
     let mut nonce = [0u8; 19];
 
@@ -190,8 +190,7 @@ fn decrypt_element(encrypted_path: &str, dist_path: &str) -> Result<(), Box<dyn 
         let read_count = encrypted_file.read(&mut buffer)?;
 
         if read_count == BUFFER_LEN {
-            let plaintext = stream_decryptor
-                .decrypt_next(buffer.as_slice());
+            let plaintext = stream_decryptor.decrypt_next(buffer.as_slice());
             match plaintext {
                 Ok(plaintext) => dist_file.write(&plaintext)?,
                 Err(_) => {
@@ -200,8 +199,7 @@ fn decrypt_element(encrypted_path: &str, dist_path: &str) -> Result<(), Box<dyn 
                 }
             };
         } else {
-            let plaintext = stream_decryptor
-                .decrypt_last(&buffer[..read_count]);
+            let plaintext = stream_decryptor.decrypt_last(&buffer[..read_count]);
             match plaintext {
                 Ok(plaintext) => dist_file.write(&plaintext)?,
                 Err(_) => {
@@ -261,11 +259,7 @@ pub fn remove_all_elements(connection: &Connection, is_test: bool) {
 }
 
 fn remove_element(trash_item: &TrashItem, is_test: bool) {
-    let element_path = format!(
-        "{}/{}",
-        get_trash_directory_path(is_test),
-        trash_item.hash
-    );
+    let element_path = format!("{}/{}", get_trash_directory_path(is_test), trash_item.hash);
     if Path::new(&element_path).is_dir() {
         fs::remove_dir_all(&element_path).unwrap();
     } else {
@@ -292,11 +286,7 @@ pub fn restore_all_elements_selected(
 }
 
 fn restore_element(trash_item: &TrashItem, is_test: bool) {
-    let path_in_trash = format!(
-        "{}/{}",
-        get_trash_directory_path(is_test),
-        trash_item.hash
-    );
+    let path_in_trash = format!("{}/{}", get_trash_directory_path(is_test), trash_item.hash);
 
     let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
 
@@ -311,8 +301,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         );
         if trash_item.is_encrypted {
             let dist_path = format!("{}/{}", &trash_item.path, trash_item.name);
-            decrypt_element(&path_in_trash, &dist_path)
-                .expect(&format!("Error decrypting file"));
+            decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
             fs::remove_file(&path_in_trash).unwrap();
         } else {
             let element_path_renamed =
@@ -322,7 +311,8 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
                 &[&element_path_renamed],
                 &trash_item.path,
                 &dir::CopyOptions::new(),
-            ).unwrap();
+            )
+            .unwrap();
         }
         return;
     }
@@ -368,8 +358,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
 
     if trash_item.is_encrypted {
         let dist_path = format!("{}/{}", &new_path, trash_item.name);
-        decrypt_element(&path_in_trash, &dist_path)
-            .expect(&format!("Error decrypting file"));
+        decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
         fs::remove_file(&path_in_trash).unwrap();
     } else {
         let new_name = format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);

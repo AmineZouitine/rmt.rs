@@ -14,6 +14,7 @@ pub struct TrashItem {
 }
 
 impl TrashItem {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         name: String,
         hash: String,

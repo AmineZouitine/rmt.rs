@@ -47,10 +47,13 @@ pub struct Filter {
 
 impl Filter {
     pub fn is_valid_item(&self, trash_item: &TrashItem) -> bool {
-        let filter_content = &self.content;
-        trash_item.name.contains(filter_content)
-            || trash_item.date.contains(filter_content)
-            || trash_item.path.contains(filter_content)
+        if !self.is_filter {
+            true
+        } else {
+            trash_item.name.contains(&self.content)
+                || trash_item.date.contains(&self.content)
+                || trash_item.path.contains(&self.content)
+        }
     }
 }
 
@@ -61,7 +64,9 @@ pub fn display_trash(
 ) -> i32 {
     println!("Which elements do you want to restore ?\n\r");
 
+    // Getting all trash item from ddb
     let mut trash_items = data_manager::find_all_trash_items(connection, is_test);
+    // filter item if the "filter mode" is activate
     trash_items.retain(|item| display_infos.filter.is_valid_item(item));
     display_infos.total_elements = trash_items.len();
 
