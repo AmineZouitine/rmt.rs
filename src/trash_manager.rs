@@ -17,6 +17,7 @@ use rand::{rngs::OsRng, RngCore};
 use std::fs::{self, File};
 use std::io::{stdout, Read, Write};
 use std::path::Path;
+use dialoguer::console::Term;
 
 pub fn add_element_to_trash(
     connection: &Connection,
@@ -27,7 +28,7 @@ pub fn add_element_to_trash(
 ) {
     let element_size = get_size(&element_path).expect("Unable to get element size");
 
-    let hash = sha256::digest(format!(
+    let mut hash = sha256::digest(format!(
         "{}{}{}",
         &element_path,
         element_size,
@@ -36,24 +37,41 @@ pub fn add_element_to_trash(
 
     let date = chrono::offset::Local::now().format("%Y-%m-%d %H:%M:%S");
 
-    let compression_size: Option<u64> = None;
+    let mut compression_size: Option<u64> = None;
     let mut is_encrypted = false;
-
-    let new_name = format!("{}/{}", get_element_path(element_path), hash);
     let element_is_directory = Path::new(&element_path).is_dir();
 
-    if config.compression {
-        Command::new("zip")
-            .arg("-qr")
-            .arg(&new_name)
-            .arg(&element_path);
-        // TODO
+    if config.compression && !element_is_directory {
+        let mut option = String::from("-qrjm");
+        if config.encryption {
+            option.push('e');
+        }
+        hash.push_str(".zip");
+        let dist_path = format!("{}/{}", get_trash_directory_path(is_test), hash);
+        let output = Command::new("zip")
+            .args([&option, &dist_path, element_path])
+            .stdin(std::process::Stdio::inherit())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::inherit())
+            .output()
+            .expect("Error compressing file");
+        if !output.status.success() {
+            panic!("Error compressing file");
+        }
+        if config.encryption {
+            // remove lines that ask for password
+            // same behaviour as `encrypt_element`
+            Term::clear_last_lines(&Term::stdout(), 2).unwrap();
+        }
+        // zip command automatically appends .zip extension
+        compression_size = Some(fs::metadata(&dist_path).unwrap().len());
     } else if config.encryption && !element_is_directory {
         let dist_path = format!("{}/{}", get_trash_directory_path(is_test), hash);
         encrypt_element(element_path, &dist_path).expect("Error encrypting file");
         fs::remove_file(element_path).unwrap();
         is_encrypted = true;
     } else {
+        let new_name = format!("{}/{}", get_element_path(element_path), hash);
         fs::rename(&element_path, &new_name).unwrap();
         fs_extra::move_items(
             &[&new_name],
@@ -92,8 +110,9 @@ pub fn add_element_to_trash(
 
 fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let encryption_key = dialoguer::Password::new()
-        .with_prompt("Encryption key")
-        .with_confirmation("Confirm encryption key", "Inputs do not match")
+        .report(false)
+        .with_prompt("Enter password")
+        .with_confirmation("Verify password", "Inputs do not match")
         .interact()?;
     let argon2_config = argon2::Config {
         variant: argon2::Variant::Argon2id,
@@ -175,9 +194,8 @@ fn decrypt_element(
         time_cost: 8,
         ..Default::default()
     };
-    let encryption_key = dialoguer::Password::new()
-        .with_prompt("Encryption key")
-        .with_confirmation("Confirm encryption key", "Inputs do not match")
+    let encryption_key: String = dialoguer::Password::new()
+        .with_prompt("Enter password")
         .interact()?;
     let key = argon2::hash_raw(encryption_key.as_bytes(), &salt, &argon2_config).unwrap();
 
@@ -287,19 +305,22 @@ pub fn restore_all_elements_selected(
 
 fn restore_element(trash_item: &TrashItem, is_test: bool) {
     let path_in_trash = format!("{}/{}", get_trash_directory_path(is_test), trash_item.hash);
-
     let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
 
     if Path::new(&trash_item.path).is_dir() && !Path::new(&element_path_name).exists() {
-        println!(
-            "{} has been restored ! :D\r",
-            trash_item.name.green().bold()
-        );
-        println!(
-            "You can find it at this path: {}\r",
-            element_path_name.green().bold()
-        );
-        if trash_item.is_encrypted {
+        if trash_item.compression_size.is_some() {
+            let output = Command::new("unzip")
+                .args([&path_in_trash, "-d", &trash_item.path])
+                .stdin(std::process::Stdio::inherit())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::inherit())
+                .output()
+                .expect("Error extracting file");
+            if !output.status.success() {
+                panic!("Error extracting file");
+            }
+            fs::remove_file(&path_in_trash).unwrap();
+        } else if trash_item.is_encrypted {
             let dist_path = format!("{}/{}", &trash_item.path, trash_item.name);
             decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
             fs::remove_file(&path_in_trash).unwrap();
@@ -311,9 +332,16 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
                 &[&element_path_renamed],
                 &trash_item.path,
                 &dir::CopyOptions::new(),
-            )
-            .unwrap();
+            ).unwrap();
         }
+        println!(
+            "{} has been restored ! :D\r",
+            trash_item.name.green().bold()
+        );
+        println!(
+            "You can find it at this path: {}\r",
+            element_path_name.green().bold()
+        );
         return;
     }
     println!("Unfortunately Path {} doesn't exist anymore or there is a file with the same name inside, so we can't restore your element to the original path :c\r\n{}\r",
@@ -356,7 +384,19 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         new_path.pop();
     }
 
-    if trash_item.is_encrypted {
+    if trash_item.compression_size.is_some() {
+        let output = Command::new("unzip")
+            .args([&path_in_trash, "-d", &trash_item.path])
+            .stdin(std::process::Stdio::inherit())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::inherit())
+            .output()
+            .expect("Error extracting file");
+        if !output.status.success() {
+            panic!("Error extracting file");
+        }
+        fs::remove_file(&path_in_trash).unwrap();
+    } else if trash_item.is_encrypted {
         let dist_path = format!("{}/{}", &new_path, trash_item.name);
         decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
         fs::remove_file(&path_in_trash).unwrap();
