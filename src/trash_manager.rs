@@ -22,7 +22,6 @@ pub fn add_element_to_trash(
     connection: &Connection,
     config: &Config,
     element_path: &str,
-    is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
     let element_size = get_size(&element_path).expect("Unable to get element size");
@@ -49,7 +48,7 @@ pub fn add_element_to_trash(
             .arg(&element_path);
         // TODO
     } else if config.encryption && !element_is_directory {
-        let dist_path = format!("{}/{}", get_trash_directory_path(is_test), hash);
+        let dist_path = format!("{}/{}", get_trash_directory_path(arguments_manager.is_test), hash);
         encrypt_element(element_path, &dist_path).expect("Error encrypting file");
         fs::remove_file(element_path).unwrap();
         is_encrypted = true;
@@ -57,7 +56,7 @@ pub fn add_element_to_trash(
         fs::rename(&element_path, &new_name).unwrap();
         fs_extra::move_items(
             &[&new_name],
-            &get_trash_directory_path(is_test),
+            &get_trash_directory_path(arguments_manager.is_test),
             &dir::CopyOptions::new(),
         )
         .unwrap();
@@ -74,7 +73,7 @@ pub fn add_element_to_trash(
         is_encrypted,
     );
     if !arguments_manager.is_destroy {
-        data_manager::insert_trash_item(connection, &trash_item, is_test);
+        data_manager::insert_trash_item(connection, &trash_item, arguments_manager.is_test);
     }
 
     if arguments_manager.is_verbose {
@@ -217,7 +216,6 @@ pub fn add_all_elements_to_trash(
     connection: &Connection,
     config: &Config,
     element_paths: &[String],
-    is_test: bool,
     arguments_manager: &ArgumentsManager,
 ) {
     if arguments_manager.confirmation_once && element_paths.len() > 3 {
@@ -233,7 +231,7 @@ pub fn add_all_elements_to_trash(
         let message = format!("Are you sure to delete {} ?", path.bold().green());
         if !arguments_manager.confirmation_always || display_manager::get_user_validation(&message)
         {
-            add_element_to_trash(connection, config, path, is_test, arguments_manager)
+            add_element_to_trash(connection, config, path, arguments_manager)
         }
     }
 }

@@ -47,6 +47,10 @@ pub struct ArgumentsManager {
     /// Flush all the elements present in the trash
     #[arg(long = "tf")]
     pub is_trash_flush: bool, // rmt trash_flush or rmt tf
+
+    /// Switch to test mode
+    #[arg(long = "test")]
+    pub is_test: bool, // rmt --test
 }
 
 impl ArgumentsManager {
