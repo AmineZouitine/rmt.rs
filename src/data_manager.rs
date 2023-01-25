@@ -83,11 +83,41 @@ pub fn find_all_trash_items(connection: &Connection, is_test: bool) -> Vec<Trash
 }
 
 // Get a trash item by id, need to refacto because it's not the best way to do it
-pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i32) -> TrashItem {
-    find_all_trash_items(connection, is_test)
-        .into_iter()
-        .find(|trash_item| trash_item.id == id)
-        .unwrap()
+pub fn find_trash_item_by_id(connection: &Connection, is_test: bool, id: i32) -> Result<TrashItem, RmtDataBaseErrors> {
+    let table_name = structure_manager::get_data_base_table_name(is_test);
+
+    let stmt_result = connection
+        .query_row(&format!("SELECT * FROM {} where id = ?1", table_name), [id], |row| {
+            Ok(TrashItem{
+                id: get(row, 0),
+                name: get(row, 1),
+                hash: get(row, 2),
+                path: get(row, 3),
+                date: get(row, 4),
+                real_size: get(row, 5),
+                compression_size: get(row, 6),
+                is_folder: get(row, 7),
+                is_encrypted: get(row, 8),
+            })
+        });
+
+    match stmt_result {
+        Ok(row) => Ok(row),
+        Err(_) => Err(RmtDataBaseErrors::GetCellElement(id as usize))
+    }
+}
+
+pub fn get_element_count(connection: &Connection, is_test: bool) -> Result<usize, RmtDataBaseErrors> {
+    let table_name = structure_manager::get_data_base_table_name(is_test);
+    let stmt_result = connection
+        .query_row(&format!("SELECT COUNT(*) FROM {} ", table_name), (), |row| {
+           row.get(0) 
+        });
+    
+    match stmt_result {
+        Ok(row) => Ok(row),
+        Err(_) => Err(RmtDataBaseErrors::CountAllElements)
+    }
 }
 
 pub fn delete_trash_item_by_id(connection: &Connection, is_test: bool, id: i32) {
