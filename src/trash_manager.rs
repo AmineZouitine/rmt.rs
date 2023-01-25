@@ -242,7 +242,8 @@ pub fn remove_all_elements_selected(
     trash_items_ids: &[i32],
 ) {
     trash_items_ids.iter().for_each(|trash_item_id| {
-        let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
+        let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id)
+            .expect(&format!("Failed to get item with id {}", &trash_item_id));
         remove_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
@@ -277,7 +278,8 @@ pub fn restore_all_elements_selected(
     trash_items_ids: &[i32],
 ) {
     trash_items_ids.iter().for_each(|trash_item_id| {
-        let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id);
+        let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id)
+            .expect(&format!("Failed to get item with id {}", &trash_item_id));
         restore_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });

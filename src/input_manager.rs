@@ -26,7 +26,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
     .unwrap();
 
     let mut display_informations = display_manager::DisplayInfos::new(
-        data_manager::find_all_trash_items(connection, is_test).len(),
+        data_manager::get_element_count(connection, is_test).expect("Failed to count all the trash"),
     );
 
     let mut current_selected_item =

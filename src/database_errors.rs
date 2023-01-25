@@ -9,6 +9,7 @@ pub enum RmtDataBaseErrors {
     SelectAllElements,
     GetCellElement(usize),
     DeleteElementById(i32),
+    CountAllElements,
     InsertTrashItem,
     DeleteAllElement,
 }
@@ -28,6 +29,7 @@ impl RmtDataBaseErrors {
                 "Impossible to delete the element at index {}.",
                 id.to_string().red().bold()
             ),
+            RmtDataBaseErrors::CountAllElements => "Failed to count all the elements".to_string(),
             RmtDataBaseErrors::InsertTrashItem => "Impossible to insert the trashItem.".to_string(),
             RmtDataBaseErrors::DeleteAllElement => "Impossible to delete all elements.".to_string(),
         }

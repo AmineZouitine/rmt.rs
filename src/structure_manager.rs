@@ -32,7 +32,7 @@ pub fn setup_structure(is_test: bool) -> (Config, Connection) {
 fn create_trash_directory(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
     if !Path::new(&trash_path).is_dir() {
-        fs::create_dir(&trash_path).expect("Unable to create tash directory");
+        fs::create_dir(&trash_path).expect("Unable to create trash directory");
     }
 }
 
