@@ -4,7 +4,7 @@ use std::process::exit;
 
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Stylize;
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType};
+use crossterm::terminal::{enable_raw_mode, Clear, ClearType};
 use crossterm::{cursor, execute};
 
 use crate::{
@@ -14,8 +14,8 @@ use crate::{
 };
 
 pub fn start_display(connection: &Connection, is_test: bool) {
-    let mut stdout = stdout();
     enable_raw_mode().unwrap();
+    let mut stdout = stdout();
     execute!(
         stdout,
         Clear(ClearType::All),
@@ -62,6 +62,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                     execute!(stdout, Clear(ClearType::All)).unwrap();
                 }
                 Err(e) => {
+                    execute!(stdout, Clear(ClearType::All)).unwrap();
                     println!("{}: {}", "Error".to_string().red().bold(), e);
                     exit(1)
                 }
@@ -79,6 +80,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                         || (code == KeyCode::Char('c') && modifiers == KeyModifiers::CONTROL)
                         || (code == KeyCode::Char('z') && modifiers == KeyModifiers::CONTROL)
                     {
+                        execute!(stdout, Clear(ClearType::All)).unwrap();
                         break;
                     }
                     if code == KeyCode::Up || code == KeyCode::Char('k') {
@@ -130,6 +132,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                     }
                 }
                 Err(e) => {
+                    execute!(stdout, Clear(ClearType::All)).unwrap();
                     println!("{}: {}", "Error".to_string().red().bold(), e);
                     exit(1)
                 }
@@ -143,8 +146,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
         current_selected_item =
             display_manager::display_trash(connection, is_test, &mut display_informations);
     }
-    execute!(stdout, Clear(ClearType::All), cursor::Show).unwrap();
-    disable_raw_mode().unwrap();
+    execute!(stdout, cursor::Show).unwrap();
 }
 
 fn set_cursor(display_infos: &mut DisplayInfos, top: bool) {
