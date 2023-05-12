@@ -111,7 +111,7 @@ pub fn display_trash(
         );
         println!("\r")
     }
-    display_inputs_commands();
+    display_inputs_commands(display_infos.filter.is_filter);
 
     current_selected_id
 }
@@ -129,18 +129,27 @@ fn display_pages_marks(display_infos: &DisplayInfos) {
 }
 
 // display all the keybinding to interact with the cli
-fn display_inputs_commands() {
-    println!(
-        "{} • {} • {} • {} • {} • {} • {} • {}\r",
-        display_input("↑/k", "up"),
-        display_input("↓/j", "down"),
-        display_input("esc", "filter"),
-        display_input("ctrl(d)", "clear filter"),
-        display_input("space", "restore"),
-        display_input("del", "flush"),
-        display_input("enter", "validation"),
-        display_input("q", "exit")
-    );
+fn display_inputs_commands(is_filter: bool) {
+    if !is_filter {
+        println!(
+            "{} • {} • {} • {} • {} • {} • {} • {}\r",
+            display_input("↑/k", "up"),
+            display_input("↓/j", "down"),
+            display_input("esc", "filter"),
+            display_input("ctrl(d)", "clear filter"),
+            display_input("space", "restore"),
+            display_input("del", "flush"),
+            display_input("enter", "validation"),
+            display_input("q", "exit")
+        );
+    } else {
+        println!(
+            "{} • {} • {}\r",
+            display_input("esc", "filter"),
+            display_input("ctrl(d)", "clear filter"),
+            display_input("q", "exit")
+        );
+    }
 }
 
 fn display_input(inputs: &str, name: &str) -> String {

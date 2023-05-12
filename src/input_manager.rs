@@ -4,7 +4,7 @@ use std::process::exit;
 
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Stylize;
-use crossterm::terminal::{enable_raw_mode, Clear, ClearType, disable_raw_mode};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType};
 use crossterm::{cursor, execute};
 
 use crate::{
@@ -194,4 +194,3 @@ fn toggle_item(selected_elements: i32, storage: &mut Vec<i32>, linked_storage: &
         storage.push(selected_elements);
     }
 }
-
