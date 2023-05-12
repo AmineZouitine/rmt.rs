@@ -4,7 +4,7 @@ use std::process::exit;
 
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Stylize;
-use crossterm::terminal::{enable_raw_mode, Clear, ClearType};
+use crossterm::terminal::{enable_raw_mode, Clear, ClearType, disable_raw_mode};
 use crossterm::{cursor, execute};
 
 use crate::{
@@ -49,14 +49,9 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                         display_informations.filter.content.pop();
                     } else if code == KeyCode::Esc {
                         display_informations.filter.is_filter = false;
-                    } else {
-                        // detect key from ascii code
-                        for ascii_num in 33..127 {
-                            let ascii_code = ascii_num as u8 as char;
-                            if code == KeyCode::Char(ascii_code) {
-                                display_informations.filter.content.push(ascii_code);
-                                break;
-                            }
+                    } else if let KeyCode::Char(c) = code {
+                        if (c as u8) >= 33 && (c as u8) <= 126 {
+                            display_informations.filter.content.push(c);
                         }
                     }
                     execute!(stdout, Clear(ClearType::All)).unwrap();
@@ -147,6 +142,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
             display_manager::display_trash(connection, is_test, &mut display_informations);
     }
     execute!(stdout, cursor::Show).unwrap();
+    disable_raw_mode().expect("Unable to disable raw mode");
 }
 
 fn set_cursor(display_infos: &mut DisplayInfos, top: bool) {
@@ -195,4 +191,3 @@ fn toggle_item(selected_elements: i32, storage: &mut Vec<i32>, linked_storage: &
     }
 }
 
-// fn set_current_page()
