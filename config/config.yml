@@ -1,5 +1,5 @@
-compression: true
-encryption: true
+compression: false 
+encryption: false 
 
 trash:
     max_size: 10000

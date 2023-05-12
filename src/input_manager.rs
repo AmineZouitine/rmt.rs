@@ -146,6 +146,10 @@ pub fn start_display(connection: &Connection, is_test: bool) {
 }
 
 fn set_cursor(display_infos: &mut DisplayInfos, top: bool) {
+    if display_infos.total_elements == 0 {
+        return;
+    }
+
     if !top
         && display_infos.current_cursor_index + 1
             < display_infos.max_element_per_page * display_infos.current_page
