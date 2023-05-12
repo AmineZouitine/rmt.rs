@@ -58,7 +58,7 @@ rmt --tf
 rmt --ti
 ```
 
-## 🔧 Using the configuration file
+## 🔧 Using the configuration file (Not stable yet)
 
 You can customize the behavior of the trash bin by editing the configuration file located at **~/.trash_rmt/config_rmt.yml**.
 
