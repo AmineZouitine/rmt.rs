@@ -3,9 +3,17 @@ use std::process::exit;
 use crate::trash_item::TrashItem;
 use crate::{database_errors::RmtDataBaseErrors, structure_manager};
 use rusqlite::{params, types::FromSql, Connection, Row};
+use std::path::{Path, MAIN_SEPARATOR};
 
-// Create the database and the table to save information about deleted elements.
 pub fn setup_data_base(is_test: bool) -> Connection {
+    let connection = create_database(is_test);
+    verification_database_item_exist_in_tash_folder(&connection, is_test);
+
+    connection
+}
+
+// Create the database and the table to save information about deleted elements. (if database doesn't already exist)
+pub fn create_database(is_test: bool) -> Connection {
     let connection = structure_manager::create_data_base_file(is_test);
     let table_name = structure_manager::get_data_base_table_name(is_test);
 
@@ -34,6 +42,24 @@ pub fn setup_data_base(is_test: bool) -> Connection {
             exit(1);
         }
     }
+}
+
+// Check if every element from the database exist on the trash
+// It's prevent error if user delete (without using rmt --td or rm --tf) element direclty on the trash folder
+pub fn verification_database_item_exist_in_tash_folder(connection: &Connection, is_test: bool) {
+    let trash_items = find_all_trash_items(connection, is_test);
+
+    trash_items.iter().for_each(|item| {
+        let path = format!(
+            "{}{}{}",
+            structure_manager::get_trash_directory_path(is_test),
+            MAIN_SEPARATOR,
+            item.hash
+        );
+        if !Path::new(&path).exists() {
+            delete_trash_item(connection, item.id, is_test);
+        }
+    })
 }
 
 fn get<T: FromSql>(row: &Row, index: usize) -> T {
