@@ -1,10 +1,11 @@
-extern crate termion;
-
 use rusqlite::Connection;
-use std::io::{stdin, stdout, Write};
-use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::IntoRawMode;
+use std::io::stdout;
+use std::process::exit;
+
+use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::style::Stylize;
+use crossterm::terminal::{enable_raw_mode, Clear, ClearType};
+use crossterm::{cursor, execute};
 
 use crate::{
     data_manager,
@@ -13,98 +14,139 @@ use crate::{
 };
 
 pub fn start_display(connection: &Connection, is_test: bool) {
-    let stdin = stdin();
-    let mut stdout_display = stdout().into_raw_mode().unwrap();
-
-    write!(
-        stdout_display,
-        "{}{}{}",
-        termion::clear::All,
-        termion::cursor::Goto(1, 1),
-        termion::cursor::Hide
+    enable_raw_mode().unwrap();
+    let mut stdout = stdout();
+    execute!(
+        stdout,
+        Clear(ClearType::All),
+        cursor::MoveTo(0, 0),
+        cursor::Hide
     )
     .unwrap();
 
     let mut display_informations = display_manager::DisplayInfos::new(
-        data_manager::get_element_count(connection, is_test).expect("Failed to count all the trash"),
+        data_manager::get_element_count(connection, is_test)
+            .expect("Failed to count all the trash"),
     );
 
     let mut current_selected_item =
         display_manager::display_trash(connection, is_test, &mut display_informations);
 
-    stdout_display.flush().unwrap();
-    for c in stdin.keys() {
-        write!(
-            stdout_display,
-            "{}{}",
-            termion::cursor::Goto(1, 1),
-            termion::clear::All
-        )
-        .unwrap();
-
+    let mut current_page: usize = display_informations.current_page;
+    loop {
+        execute!(stdout, cursor::MoveTo(0, 0)).unwrap();
         if display_informations.filter.is_filter {
-            match c.unwrap() {
-                Key::Char(c) => {
-                    display_informations.filter.content =
-                        format!("{}{}", &display_informations.filter.content, c)
+            match read() {
+                Ok(Event::Key(KeyEvent {
+                    code,
+                    modifiers,
+                    kind: KeyEventKind::Press,
+                    state: _,
+                })) => {
+                    if code == KeyCode::Char('d') && modifiers == KeyModifiers::CONTROL {
+                        display_informations.filter.content.clear();
+                    } else if code == KeyCode::Backspace {
+                        display_informations.filter.content.pop();
+                    } else if code == KeyCode::Esc {
+                        display_informations.filter.is_filter = false;
+                    } else {
+                        // detect key from ascii code
+                        for ascii_num in 33..127 {
+                            let ascii_code = ascii_num as u8 as char;
+                            if code == KeyCode::Char(ascii_code) {
+                                display_informations.filter.content.push(ascii_code);
+                                break;
+                            }
+                        }
+                    }
+                    execute!(stdout, Clear(ClearType::All)).unwrap();
                 }
-                Key::Ctrl('d') => display_informations.filter.content.clear(),
-                Key::Backspace => {
-                    display_informations.filter.content.pop();
+                Err(e) => {
+                    execute!(stdout, Clear(ClearType::All)).unwrap();
+                    println!("{}: {}", "Error".to_string().red().bold(), e);
+                    exit(1)
                 }
-                _ => display_informations.filter.is_filter = false,
-            };
+                _ => (),
+            }
         } else {
-            match c.unwrap() {
-                Key::Char('q') | Key::Ctrl('c') | Key::Ctrl('z') => break,
-                Key::Char('k') | Key::Up => set_cursor(&mut display_informations, true),
-                Key::Char('j') | Key::Down => set_cursor(&mut display_informations, false),
-                Key::Char('h') | Key::Left => set_page(&mut display_informations, false),
-                Key::Char('l') | Key::Right => set_page(&mut display_informations, true),
-                Key::Esc => {
-                    display_informations.filter.is_filter = true;
-                    display_informations.current_cursor_index = 0;
-                    display_informations.current_page = 1;
-                }
-                Key::Ctrl('d') => display_informations.filter.content.clear(),
-                Key::Char(' ') => toggle_item(
-                    current_selected_item,
-                    &mut display_informations.selected_trash_items.restore,
-                    &mut display_informations.selected_trash_items.delete,
-                ),
-                Key::Delete => toggle_item(
-                    current_selected_item,
-                    &mut display_informations.selected_trash_items.delete,
-                    &mut display_informations.selected_trash_items.restore,
-                ),
-                Key::Char('\n') => {
-                    stdout_display.suspend_raw_mode().unwrap();
-                    write!(stdout_display, "{}", termion::cursor::Show).unwrap();
-                    write!(stdout_display, "{}", termion::clear::All).unwrap();
+            match read() {
+                Ok(Event::Key(KeyEvent {
+                    code,
+                    modifiers,
+                    kind: KeyEventKind::Press,
+                    state: _,
+                })) => {
+                    if code == KeyCode::Char('q')
+                        || (code == KeyCode::Char('c') && modifiers == KeyModifiers::CONTROL)
+                        || (code == KeyCode::Char('z') && modifiers == KeyModifiers::CONTROL)
+                    {
+                        execute!(stdout, Clear(ClearType::All)).unwrap();
+                        break;
+                    }
+                    if code == KeyCode::Up || code == KeyCode::Char('k') {
+                        set_cursor(&mut display_informations, true);
+                    }
+                    if code == KeyCode::Down || code == KeyCode::Char('j') {
+                        set_cursor(&mut display_informations, false);
+                    }
+                    if code == KeyCode::Left || code == KeyCode::Char('h') {
+                        set_page(&mut display_informations, false);
+                    }
+                    if code == KeyCode::Right || code == KeyCode::Char('l') {
+                        set_page(&mut display_informations, true);
+                    }
+                    if code == KeyCode::Esc {
+                        display_informations.filter.is_filter = true;
+                        display_informations.current_cursor_index = 0;
+                        display_informations.current_page = 1;
+                        execute!(stdout, Clear(ClearType::All)).unwrap();
+                    }
+                    if code == KeyCode::Char(' ') {
+                        toggle_item(
+                            current_selected_item,
+                            &mut display_informations.selected_trash_items.restore,
+                            &mut display_informations.selected_trash_items.delete,
+                        );
+                    }
+                    if code == KeyCode::Delete {
+                        toggle_item(
+                            current_selected_item,
+                            &mut display_informations.selected_trash_items.delete,
+                            &mut display_informations.selected_trash_items.restore,
+                        );
+                    }
+                    if code == KeyCode::Enter {
+                        execute!(stdout, cursor::Show, Clear(ClearType::All)).unwrap();
 
-                    trash_manager::remove_all_elements_selected(
-                        connection,
-                        is_test,
-                        &display_informations.selected_trash_items.delete,
-                    );
-                    trash_manager::restore_all_elements_selected(
-                        connection,
-                        is_test,
-                        &display_informations.selected_trash_items.restore,
-                    );
-                    stdout_display.activate_raw_mode().unwrap();
-                    break;
+                        trash_manager::remove_all_elements_selected(
+                            connection,
+                            is_test,
+                            &display_informations.selected_trash_items.delete,
+                        );
+                        trash_manager::restore_all_elements_selected(
+                            connection,
+                            is_test,
+                            &display_informations.selected_trash_items.restore,
+                        );
+                        break;
+                    }
+                }
+                Err(e) => {
+                    execute!(stdout, Clear(ClearType::All)).unwrap();
+                    println!("{}: {}", "Error".to_string().red().bold(), e);
+                    exit(1)
                 }
                 _ => (),
             }
         }
+        if current_page != display_informations.current_page {
+            execute!(stdout, Clear(ClearType::All)).unwrap();
+            current_page = display_informations.current_page;
+        }
         current_selected_item =
             display_manager::display_trash(connection, is_test, &mut display_informations);
-
-        stdout_display.flush().unwrap();
     }
-
-    write!(stdout_display, "{}", termion::cursor::Show).unwrap();
+    execute!(stdout, cursor::Show).unwrap();
 }
 
 fn set_cursor(display_infos: &mut DisplayInfos, top: bool) {

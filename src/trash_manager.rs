@@ -16,7 +16,7 @@ use chacha20poly1305::{aead::stream, KeyInit, XChaCha20Poly1305};
 use rand::{rngs::OsRng, RngCore};
 use std::fs::{self, File};
 use std::io::{stdout, Read, Write};
-use std::path::Path;
+use std::path::{Path, MAIN_SEPARATOR};
 
 pub fn add_element_to_trash(
     connection: &Connection,
@@ -48,7 +48,11 @@ pub fn add_element_to_trash(
             .arg(&element_path);
         // TODO
     } else if config.encryption && !element_is_directory {
-        let dist_path = format!("{}/{}", get_trash_directory_path(arguments_manager.is_test), hash);
+        let dist_path = format!(
+            "{}/{}",
+            get_trash_directory_path(arguments_manager.is_test),
+            hash
+        );
         encrypt_element(element_path, &dist_path).expect("Error encrypting file");
         fs::remove_file(element_path).unwrap();
         is_encrypted = true;
@@ -258,7 +262,12 @@ pub fn remove_all_elements(connection: &Connection, is_test: bool) {
 }
 
 fn remove_element(trash_item: &TrashItem, is_test: bool) {
-    let element_path = format!("{}/{}", get_trash_directory_path(is_test), trash_item.hash);
+    let element_path = format!(
+        "{}{}{}",
+        get_trash_directory_path(is_test),
+        MAIN_SEPARATOR,
+        trash_item.hash
+    );
     if Path::new(&element_path).is_dir() {
         fs::remove_dir_all(&element_path).unwrap();
     } else {
@@ -286,9 +295,14 @@ pub fn restore_all_elements_selected(
 }
 
 fn restore_element(trash_item: &TrashItem, is_test: bool) {
-    let path_in_trash = format!("{}/{}", get_trash_directory_path(is_test), trash_item.hash);
+    let path_in_trash = format!(
+        "{}{}{}",
+        get_trash_directory_path(is_test),
+        MAIN_SEPARATOR,
+        trash_item.hash
+    );
 
-    let element_path_name = format!("{}/{}", &trash_item.path, &trash_item.name);
+    let element_path_name = format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, &trash_item.name);
 
     if Path::new(&trash_item.path).is_dir() && !Path::new(&element_path_name).exists() {
         println!(
@@ -300,12 +314,16 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
             element_path_name.green().bold()
         );
         if trash_item.is_encrypted {
-            let dist_path = format!("{}/{}", &trash_item.path, trash_item.name);
+            let dist_path = format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, trash_item.name);
             decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
             fs::remove_file(&path_in_trash).unwrap();
         } else {
-            let element_path_renamed =
-                format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
+            let element_path_renamed = format!(
+                "{}{}{}",
+                get_trash_directory_path(is_test),
+                MAIN_SEPARATOR,
+                trash_item.name
+            );
             fs::rename(&path_in_trash, &element_path_renamed).unwrap();
             fs_extra::move_items(
                 &[&element_path_renamed],
@@ -325,7 +343,11 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
     std::io::stdin().read_line(&mut new_path).unwrap();
     new_path.pop();
     while !Path::new(&new_path).is_dir()
-        || Path::new(&format!("{}/{}", &new_path, &trash_item.name)).exists()
+        || Path::new(&format!(
+            "{}{}{}",
+            &new_path, MAIN_SEPARATOR, &trash_item.name
+        ))
+        .exists()
     {
         if !Path::new(&new_path).exists() {
             println!(
@@ -357,11 +379,16 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
     }
 
     if trash_item.is_encrypted {
-        let dist_path = format!("{}/{}", &new_path, trash_item.name);
+        let dist_path = format!("{}{}{}", &new_path, MAIN_SEPARATOR, trash_item.name);
         decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
         fs::remove_file(&path_in_trash).unwrap();
     } else {
-        let new_name = format!("{}/{}", get_trash_directory_path(is_test), trash_item.name);
+        let new_name = format!(
+            "{}{}{}",
+            get_trash_directory_path(is_test),
+            MAIN_SEPARATOR,
+            trash_item.name
+        );
         fs::rename(&path_in_trash, &new_name).unwrap();
         fs_extra::move_items(&[new_name], &new_path, &dir::CopyOptions::new()).unwrap();
     }
@@ -369,12 +396,14 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
         "{} has been restored ! :D\r",
         trash_item.name.green().bold()
     );
-    if !new_path.is_empty() && new_path.as_bytes()[new_path.len() - 1] as char == '/' {
+    if !new_path.is_empty() && new_path.as_bytes()[new_path.len() - 1] as char == MAIN_SEPARATOR {
         new_path.pop();
     }
     println!(
         "You can find it at this path: {}\r",
-        format!("{}/{}", &new_path, &trash_item.name).green().bold()
+        format!("{}{}{}", &new_path, MAIN_SEPARATOR, &trash_item.name)
+            .green()
+            .bold()
     );
 }
 
