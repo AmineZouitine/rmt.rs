@@ -112,6 +112,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                     }
                     if code == KeyCode::Enter {
                         execute!(stdout, cursor::Show, Clear(ClearType::All)).unwrap();
+                        disable_raw_mode().expect("Unable to disable raw mode");
 
                         trash_manager::remove_all_elements_selected(
                             connection,
