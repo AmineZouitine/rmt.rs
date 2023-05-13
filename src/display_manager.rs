@@ -138,7 +138,7 @@ fn display_inputs_commands(is_filter: bool) {
             display_input("esc", "filter"),
             display_input("ctrl(d)", "clear filter"),
             display_input("space", "restore"),
-            display_input("del", "flush"),
+            display_input("del/f", "flush"),
             display_input("enter", "validation"),
             display_input("q", "exit")
         );

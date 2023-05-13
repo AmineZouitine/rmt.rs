@@ -90,7 +90,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                     if code == KeyCode::Right || code == KeyCode::Char('l') {
                         set_page(&mut display_informations, true);
                     }
-                    if code == KeyCode::Esc {
+                    if code == KeyCode::Esc || code == KeyCode::Char('/') {
                         display_informations.filter.is_filter = true;
                         display_informations.current_cursor_index = 0;
                         display_informations.current_page = 1;
@@ -103,7 +103,7 @@ pub fn start_display(connection: &Connection, is_test: bool) {
                             &mut display_informations.selected_trash_items.delete,
                         );
                     }
-                    if code == KeyCode::Delete {
+                    if code == KeyCode::Delete || code == KeyCode::Char('f') {
                         toggle_item(
                             current_selected_item,
                             &mut display_informations.selected_trash_items.delete,
