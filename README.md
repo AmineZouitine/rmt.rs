@@ -40,7 +40,7 @@ rmt folder test.txt *.sh
 ```
 ✨ I like to use **-f** option, to remove all the warnings.
 
-### 📺 Launch CLI to restore or flush elements
+### 📺 Launch GUI to restore or flush elements
 
 ```sh
 rmt --td
