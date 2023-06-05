@@ -45,12 +45,26 @@ impl TrashItem {
 
 impl fmt::Display for TrashItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let emoji = if self.is_folder { "📁" } else { "📄" };
+        let mut symbols = Vec::new();
+        if self.is_encrypted {
+            symbols.push("🔒")
+        };
+        if self.is_compressed {
+            symbols.push("📦")
+        };
+        if self.is_folder {
+            symbols.push("📁")
+        } else {
+            symbols.push("📄")
+        };
 
         write!(
             f,
             " {} date: {}  name: {}  initial_path: {}",
-            emoji, self.date, self.name, self.path,
+            symbols.join(""),
+            self.date,
+            self.name,
+            self.path,
         )
     }
 }
