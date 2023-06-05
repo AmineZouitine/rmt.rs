@@ -63,11 +63,7 @@ fn create_config_file(is_test: bool) -> Config {
 }
 
 pub fn get_home_directory_path() -> String {
-    dirs::home_dir()
-        .unwrap()
-        .to_string_lossy()
-        .into_owned()
-        .to_string()
+    dirs::home_dir().unwrap().to_string_lossy().into_owned()
 }
 
 pub fn get_trash_directory_path(is_test: bool) -> String {

@@ -26,7 +26,7 @@ pub fn add_element_to_trash(
     element_path: &str,
     arguments_manager: &ArgumentsManager,
 ) {
-    let element_size = get_size(&element_path).expect("Unable to get element size");
+    let element_size = get_size(element_path).expect("Unable to get element size");
 
     let hash = sha256::digest(format!(
         "{}{}{}",
@@ -45,7 +45,7 @@ pub fn add_element_to_trash(
 
     if config.compression {
         let compressed_path = format!("{}.zip", element_path);
-        compress_element(&element_path, &compressed_path).expect("Failed to compress");
+        compress_element(element_path, &compressed_path).expect("Failed to compress");
         compression_size =
             Some(get_size(&compressed_path).expect("Unable to get compressed element size"));
         is_compressed = true;
@@ -73,7 +73,7 @@ pub fn add_element_to_trash(
             fs::rename(&compressed_path, &new_name).unwrap();
             fs_extra::move_items(
                 &[&new_name],
-                &get_trash_directory_path(arguments_manager.is_test),
+                get_trash_directory_path(arguments_manager.is_test),
                 &dir::CopyOptions::new(),
             )
             .unwrap();
@@ -103,10 +103,10 @@ pub fn add_element_to_trash(
             MAIN_SEPARATOR,
             hash
         );
-        fs::rename(&element_path, &new_name).unwrap();
+        fs::rename(element_path, &new_name).unwrap();
         fs_extra::move_items(
             &[&new_name],
-            &get_trash_directory_path(arguments_manager.is_test),
+            get_trash_directory_path(arguments_manager.is_test),
             &dir::CopyOptions::new(),
         )
         .unwrap();
@@ -191,13 +191,13 @@ fn decompress_element(compressed_path: &str, dist_path: &str) -> Result<(), std:
         if i == 0 {
             base_dir = format!(
                 "{}{}{}",
-                dist_path.clone(),
+                <&str>::clone(&dist_path),
                 MAIN_SEPARATOR,
                 entry_name.file_name().unwrap().to_string_lossy(),
             )
         };
 
-        if f.name().ends_with("/") {
+        if f.name().ends_with('/') {
             fs::create_dir_all(&output_path)?;
         } else {
             if let Some(p) = output_path.parent() {
@@ -374,7 +374,7 @@ pub fn remove_all_elements_selected(
 ) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id)
-            .expect(&format!("Failed to get item with id {}", &trash_item_id));
+            .unwrap_or_else(|_| panic!("Failed to get item with id {}", &trash_item_id));
         remove_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });
@@ -415,7 +415,7 @@ pub fn restore_all_elements_selected(
 ) {
     trash_items_ids.iter().for_each(|trash_item_id| {
         let trash_item = data_manager::find_trash_item_by_id(connection, is_test, *trash_item_id)
-            .expect(&format!("Failed to get item with id {}", &trash_item_id));
+            .unwrap_or_else(|_| panic!("Failed to get item with id {}", &trash_item_id));
         restore_element(&trash_item, is_test);
         data_manager::delete_trash_item_by_id(connection, is_test, *trash_item_id);
     });

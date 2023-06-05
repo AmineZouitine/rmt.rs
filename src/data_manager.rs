@@ -57,10 +57,7 @@ pub fn create_database(is_test: bool) -> Connection {
         match stmt_result {
             Ok(_) => connection,
             Err(_) => {
-                println!(
-                    "{}",
-                    "Failed to add 'is_compressed' column to the existing trash database"
-                );
+                println!("Failed to add 'is_compressed' column to the existing trash database");
                 exit(1);
             }
         }
