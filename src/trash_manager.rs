@@ -5,18 +5,19 @@ use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
     trash_item::TrashItem,
 };
+
+use chacha20poly1305::{aead::stream, KeyInit, XChaCha20Poly1305};
 use chrono;
 use colored::Colorize;
 use fs_extra::dir::{self, get_size};
 use rusqlite::Connection;
 use sha256;
-use std::process::Command;
 
-use chacha20poly1305::{aead::stream, KeyInit, XChaCha20Poly1305};
 use rand::{rngs::OsRng, RngCore};
 use std::fs::{self, File};
 use std::io::{stdout, Read, Write};
 use std::path::{Path, MAIN_SEPARATOR};
+use std::process::Command;
 
 pub fn add_element_to_trash(
     connection: &Connection,
@@ -36,9 +37,15 @@ pub fn add_element_to_trash(
     let date = chrono::offset::Local::now().format("%Y-%m-%d %H:%M:%S");
 
     let compression_size: Option<u64> = None;
+    let is_compressed = false;
     let mut is_encrypted = false;
 
-    let new_name = format!("{}/{}", get_element_path(element_path), hash);
+    let new_name = format!(
+        "{}{}{}",
+        get_element_path(element_path),
+        MAIN_SEPARATOR,
+        hash
+    );
     let element_is_directory = Path::new(&element_path).is_dir();
 
     if config.compression {
@@ -74,6 +81,7 @@ pub fn add_element_to_trash(
         element_size,
         compression_size,
         element_is_directory,
+        is_compressed,
         is_encrypted,
     );
     if !arguments_manager.is_destroy {

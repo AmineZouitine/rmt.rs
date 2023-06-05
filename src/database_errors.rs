@@ -6,6 +6,7 @@ use colored::Colorize;
 #[derive(Debug)]
 pub enum RmtDataBaseErrors {
     DataBaseCreation,
+    CountAllColumns,
     SelectAllElements,
     GetCellElement(usize),
     DeleteElementById(i32),
@@ -18,6 +19,7 @@ impl RmtDataBaseErrors {
     fn error_message(&self) -> String {
         match self {
             RmtDataBaseErrors::DataBaseCreation => "Impossible to create the database.".to_string(),
+            RmtDataBaseErrors::CountAllColumns => "Failed to count all the columns".to_string(),
             RmtDataBaseErrors::SelectAllElements => {
                 "Impossible to select all the elements.".to_string()
             }
