@@ -205,7 +205,7 @@ fn decompress_element(compressed_path: &str, dist_path: &str) -> Result<(), std:
                     fs::create_dir_all(p)?;
                 }
             }
-            let mut output_f = File::create(output_path)?;
+            let mut output_f = File::create(output_path.clone())?;
             copy(&mut f, &mut output_f)?;
         };
 
