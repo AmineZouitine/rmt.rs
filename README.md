@@ -33,7 +33,7 @@ Add **rmt** as an **alias** instead of the **rm** command.
 ```sh
 rmt [OPTION]... [FILE|FOLDER]...
 
-Exemples: 
+Exemples:
 rmt text.txt
 rmt * -- -text.txt
 rmt folder test.txt *.sh
