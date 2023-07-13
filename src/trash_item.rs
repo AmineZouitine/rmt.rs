@@ -1,6 +1,7 @@
+use field_count::FieldCount;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, FieldCount)]
 pub struct TrashItem {
     pub id: i32,
     pub name: String,
@@ -11,6 +12,7 @@ pub struct TrashItem {
     pub compression_size: Option<u64>,
     pub is_folder: bool,
     pub is_encrypted: bool,
+    pub is_compressed: bool,
 }
 
 impl TrashItem {
@@ -24,6 +26,7 @@ impl TrashItem {
         compression_size: Option<u64>,
         is_folder: bool,
         is_encrypted: bool,
+        is_compressed: bool,
     ) -> Self {
         Self {
             id: -1,
@@ -35,18 +38,33 @@ impl TrashItem {
             compression_size,
             is_folder,
             is_encrypted,
+            is_compressed,
         }
     }
 }
 
 impl fmt::Display for TrashItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let emoji = if self.is_folder { "📁" } else { "📄" };
+        let mut symbols = Vec::new();
+        if self.is_encrypted {
+            symbols.push("🔒")
+        };
+        if self.is_compressed {
+            symbols.push("📦")
+        };
+        if self.is_folder {
+            symbols.push("📁")
+        } else {
+            symbols.push("📄")
+        };
 
         write!(
             f,
-            " {} date: {}  name: {}  inital_path: {}",
-            emoji, self.date, self.name, self.path,
+            " {} date: {}  name: {}  initial_path: {}",
+            symbols.join(""),
+            self.date,
+            self.name,
+            self.path,
         )
     }
 }

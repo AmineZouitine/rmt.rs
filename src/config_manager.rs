@@ -16,7 +16,7 @@ pub fn config_setup(config_path: &str) -> Config {
         write_default_config_file(config_path, &default_config_content);
     } else {
         // get the current content of the config file
-        let config_content = fs::read_to_string(&config_path).expect("Unable to read config file");
+        let config_content = fs::read_to_string(config_path).expect("Unable to read config file");
 
         // try to convert it to Config structure
         current_config = serde_yaml::from_str(&config_content).unwrap_or_else(|_| {

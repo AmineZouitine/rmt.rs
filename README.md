@@ -33,7 +33,7 @@ Add **rmt** as an **alias** instead of the **rm** command.
 ```sh
 rmt [OPTION]... [FILE|FOLDER]...
 
-Exemples: 
+Exemples:
 rmt text.txt
 rmt * -- -text.txt
 rmt folder test.txt *.sh
@@ -64,7 +64,7 @@ You can customize the behavior of the trash bin by editing the configuration fil
 Currently, you have the option to encrypt your data so that it becomes unreadable from the trash. Compression is a feature that will be available in the future.
 
 ```yml
-compression: false # not implemented yet
+compression: true
 encryption: true
 trash: null
 ```
