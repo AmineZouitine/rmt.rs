@@ -97,7 +97,26 @@ pub fn add_element_to_trash(
         .expect("Failed to encrypt");
         is_encrypted = true;
         delete_file(element_path).unwrap();
-    } else {
+    } else if config.encryption && element_is_directory {
+        let temp_path = element_path.to_string() + &String::from(".temp");
+        compress_element(element_path, &temp_path).unwrap();
+        delete_folder(element_path).unwrap();
+        fs::rename(&temp_path, element_path).unwrap();
+        encrypt_element(
+            element_path,
+            &format!(
+                "{}{}{}",
+                get_trash_directory_path(arguments_manager.is_test),
+                MAIN_SEPARATOR,
+                hash
+            ),
+        )
+        .expect("Failed to encrypt");
+        is_encrypted = true;
+        is_compressed = true;
+        delete_file(element_path).unwrap();
+    }
+    else {
         let new_name = format!(
             "{}{}{}",
             get_element_path(element_path),
@@ -442,7 +461,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
             decrypt_element(&path_in_trash, &decrypted_path_in_trash).expect("Failed to decrypt");
             decompress_element(&decrypted_path_in_trash, &trash_item.path)
                 .expect("Failed to decompress");
-            fs::remove_file(decrypted_path_in_trash).unwrap();
+            delete_file(&decrypted_path_in_trash).unwrap();
         } else if trash_item.is_encrypted {
             decrypt_element(
                 &path_in_trash,
@@ -450,7 +469,20 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
             )
             .expect("Failed to decrypt");
             delete_file(&path_in_trash).unwrap();
-        } else if trash_item.is_compressed {
+        }else if trash_item.is_compressed && trash_item.is_encrypted && trash_item.is_folder {
+            let temp_name = path_in_trash.clone() + ".temp";
+            decrypt_element(
+                &path_in_trash,
+                &format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, temp_name),
+            )
+            .expect("Failed to decrypt");
+            decompress_element(
+    &format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, temp_name),
+          &format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, trash_item.name)
+            ).expect("Failed to decompress");
+            delete_file(&format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, temp_name)).unwrap();
+        } 
+        else if trash_item.is_compressed {
             decompress_element(&path_in_trash, &trash_item.path).expect("Failed to decompress");
             delete_file(&path_in_trash).unwrap();
         } else {
