@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use crate::{argument_errors::RmtArgumentErrors, config::Config, config_manager, data_manager};
+use crate::{argument_errors::RmtArgumentErrors, config::Config, config_manager, data_manager, secure_delete::delete_folder};
 use std::{
     ffi::OsStr,
     fs,
@@ -45,13 +45,13 @@ pub fn clear_structure(is_test: bool) {
     let trash_path = get_trash_directory_path(is_test);
     println!("{}", trash_path);
     if Path::new(&trash_path).is_dir() {
-        fs::remove_dir_all(trash_path.clone())
+        delete_folder(&trash_path)
             .unwrap_or_else(|_| panic!("Unable to delete {}", trash_path));
     }
 
     let data_base_path = get_data_base_path(is_test);
     if Path::new(&data_base_path).is_dir() {
-        fs::remove_dir_all(&data_base_path)
+        delete_folder(&data_base_path)
             .unwrap_or_else(|_| panic!("Unable to delete {}", data_base_path));
     }
 }

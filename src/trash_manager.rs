@@ -1,5 +1,6 @@
 use crate::arguments_manager::ArgumentsManager;
 use crate::display_manager;
+use crate::secure_delete::{delete_file, delete_folder};
 use crate::structure_manager::{self, get_element_path, get_home_directory_path};
 use crate::{
     config::Config, data_manager, structure_manager::get_trash_directory_path,
@@ -61,7 +62,7 @@ pub fn add_element_to_trash(
                 ),
             )
             .expect("Failed to encrypt");
-            fs::remove_file(&compressed_path).unwrap();
+            delete_file(&compressed_path).unwrap();
             is_encrypted = true;
         } else {
             let new_name = format!(
@@ -79,9 +80,9 @@ pub fn add_element_to_trash(
             .unwrap();
         }
         if !element_is_directory {
-            fs::remove_file(element_path).unwrap();
+            delete_file(element_path).unwrap();
         } else {
-            fs::remove_dir_all(element_path).unwrap();
+            delete_folder(element_path).unwrap();
         }
     } else if config.encryption && !element_is_directory {
         encrypt_element(
@@ -95,7 +96,7 @@ pub fn add_element_to_trash(
         )
         .expect("Failed to encrypt");
         is_encrypted = true;
-        fs::remove_file(element_path).unwrap();
+        delete_file(element_path).unwrap();
     } else {
         let new_name = format!(
             "{}{}{}",
@@ -259,7 +260,7 @@ fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std
             match ciphertext {
                 Ok(ciphertext) => dist_file.write(&ciphertext)?,
                 Err(_) => {
-                    let _ = fs::remove_file(dist_path);
+                    let _ = delete_file(dist_path);
                     panic!("Error encrypting file");
                 }
             };
@@ -268,7 +269,7 @@ fn encrypt_element(source_path: &str, dist_path: &str) -> Result<(), Box<dyn std
             match ciphertext {
                 Ok(ciphertext) => dist_file.write(&ciphertext)?,
                 Err(_) => {
-                    let _ = fs::remove_file(dist_path);
+                    let _ = delete_file(dist_path);
                     panic!("Error encrypting file");
                 }
             };
@@ -324,7 +325,7 @@ fn decrypt_element(
             match plaintext {
                 Ok(plaintext) => dist_file.write(&plaintext)?,
                 Err(_) => {
-                    let _ = fs::remove_file(dist_path);
+                    let _ = delete_file(dist_path);
                     panic!("Error decrypting file");
                 }
             };
@@ -333,7 +334,7 @@ fn decrypt_element(
             match plaintext {
                 Ok(plaintext) => dist_file.write(&plaintext)?,
                 Err(_) => {
-                    let _ = fs::remove_file(dist_path);
+                    let _ = delete_file(dist_path);
                     panic!("Error decrypting file");
                 }
             };
@@ -396,9 +397,9 @@ fn remove_element(trash_item: &TrashItem, is_test: bool) {
         trash_item.hash
     );
     if Path::new(&element_path).is_dir() {
-        fs::remove_dir_all(&element_path).unwrap();
+        delete_folder(&element_path).unwrap();
     } else {
-        fs::remove_file(&element_path).unwrap();
+        delete_file(&element_path).unwrap();
     }
 
     println!(
@@ -448,10 +449,10 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
                 &format!("{}{}{}", &trash_item.path, MAIN_SEPARATOR, trash_item.name),
             )
             .expect("Failed to decrypt");
-            fs::remove_file(&path_in_trash).unwrap();
+            delete_file(&path_in_trash).unwrap();
         } else if trash_item.is_compressed {
             decompress_element(&path_in_trash, &trash_item.path).expect("Failed to decompress");
-            fs::remove_file(&path_in_trash).unwrap();
+            delete_file(&path_in_trash).unwrap();
         } else {
             let renamed_path_in_trash = format!(
                 "{}{}{}",
@@ -524,7 +525,7 @@ fn restore_element(trash_item: &TrashItem, is_test: bool) {
     if trash_item.is_encrypted {
         let dist_path = format!("{}{}{}", &new_path, MAIN_SEPARATOR, trash_item.name);
         decrypt_element(&path_in_trash, &dist_path).expect("Error decrypting file");
-        fs::remove_file(&path_in_trash).unwrap();
+        delete_file(&path_in_trash).unwrap();
     } else {
         let new_name = format!(
             "{}{}{}",
