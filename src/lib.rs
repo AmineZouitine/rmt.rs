@@ -9,3 +9,4 @@ pub mod input_manager;
 pub mod structure_manager;
 pub mod trash_item;
 pub mod trash_manager;
+pub mod secure_delete;
